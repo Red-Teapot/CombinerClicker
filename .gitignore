@@ -1,0 +1,6 @@
+/target
+/pkg
+/.idea
+/release
+Cargo.lock
+*.env
