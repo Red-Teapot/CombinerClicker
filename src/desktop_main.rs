@@ -2,5 +2,5 @@ use bevy::prelude::App;
 
 fn main() {
     let mut app = App::new();
-    kpacubo::run(&mut app);
+    combiner_clicker::run(&mut app);
 }

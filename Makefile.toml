@@ -1,7 +1,7 @@
 env_files = [ './butler.env' ]
 
 [env]
-PROJECT_NAME = 'kpacubo'
+PROJECT_NAME = 'combiner_clicker'
 WINDOWS_TARGET = 'x86_64-pc-windows-msvc'
 
 [tasks.prepare-release-dir]
@@ -10,29 +10,6 @@ script = '''
 rm -r release
 mkdir release/web
 mkdir release/windows
-'''
-
-[tasks.collect-assets]
-condition = { env_set = ['PLATFORM'] }
-script_runner = '@duckscript'
-script = '''
-assets = array
-
-pngs = glob_array assets/**/*.png
-assets = array_concat ${assets} ${pngs}
-
-wavs = glob_array assets/**/*.wav
-assets = array_concat ${assets} ${wavs}
-
-oggs = glob_array assets/**/*.ogg
-assets = array_concat ${assets} ${oggs}
-
-ttfs = glob_array assets/**/*.ttf
-assets = array_concat ${assets} ${ttfs}
-
-for path in ${assets}
-    cp ${path} release/${PLATFORM}/${path}
-end
 '''
 
 [tasks.zip-platform]
@@ -117,13 +94,9 @@ command = 'wasm-pack'
 args = ['build', '--target', 'web']
 install_crate = { crate_name = 'wasm-pack', test_arg = '--help' }
 
-[tasks.collect-assets-web]
-env = { 'PLATFORM' = 'web' }
-run_task = 'collect-assets'
-
 [tasks.distrib-web]
 env = { 'PLATFORM' = 'web' }
-dependencies = ['prepare-release-dir', 'compile-web', 'collect-assets-web']
+dependencies = ['prepare-release-dir', 'compile-web']
 script_runner = '@duckscript'
 script = '''
 cp pkg/${PROJECT_NAME}_bg.wasm release/${PLATFORM}/${PROJECT_NAME}.wasm
@@ -155,13 +128,9 @@ exec ${BUTLER_EXE} push release/web ${ITCH_USER}/${ITCH_GAME}:web
 command = 'cargo'
 args = ['build', '--release', '--target', '${WINDOWS_TARGET}']
 
-[tasks.collect-assets-windows]
-env = { 'PLATFORM' = 'windows' }
-run_task = 'collect-assets'
-
 [tasks.distrib-windows]
 env = { 'PLATFORM' = 'windows' }
-dependencies = ['prepare-release-dir', 'compile-windows', 'collect-assets-windows']
+dependencies = ['prepare-release-dir', 'compile-windows']
 script_runner = '@duckscript'
 script = '''
 cp target/${WINDOWS_TARGET}/release/${PROJECT_NAME}-desktop.exe release/${PLATFORM}/${PROJECT_NAME}-desktop.exe

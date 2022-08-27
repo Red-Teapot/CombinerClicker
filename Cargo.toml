@@ -1,5 +1,5 @@
 [package]
-name = "kpacubo"
+name = "combiner-clicker"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,16 +8,18 @@ crate-type = ["cdylib", "rlib"]
 path = "src/lib.rs"
 
 [[bin]]
-name = "kpacubo-desktop"
+name = "combiner_clicker-desktop"
 path = "src/desktop_main.rs"
 
 # Opinionated, aimed mostly at 2D games
 
 # Audio formats should be enabled only in bevy_kira_audio
 [dependencies.bevy]
-version = "0.7"
+version = "0.8"
 default-features = false
 features = [
+    "bevy_asset",
+    "bevy_scene",
     "render",
     "bevy_winit",
     "png",
@@ -27,18 +29,21 @@ features = [
 
 # Apparently this is better than built-in Bevy audio system
 [dependencies.bevy_kira_audio]
-version = "0.10"
+version = "0.12"
 default-features = false
 features = ["ogg", "wav"]
 
 [dependencies]
-# Utilities
-wasm-bindgen = "0.2"
 rand = "0.8"
+bevy_tweening = "0.5"
+bevy_ninepatch = "0.8"
+iyes_loopless = "0.7"
+
+wasm-bindgen = "0.2"
 
 # Native dependencies
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-# (empty)
+bevy-inspector-egui = "0.12"
 
 # Wasm dependencies
 [target.'cfg(target_arch = "wasm32")'.dependencies]
