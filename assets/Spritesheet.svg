@@ -25,15 +25,15 @@
      inkscape:deskcolor="#505050"
      inkscape:document-units="px"
      showgrid="false"
-     inkscape:zoom="10"
-     inkscape:cx="-3.8"
-     inkscape:cy="2.45"
-     inkscape:window-width="1920"
-     inkscape:window-height="1133"
-     inkscape:window-x="2551"
-     inkscape:window-y="235"
+     inkscape:zoom="3.5355339"
+     inkscape:cx="140.99709"
+     inkscape:cy="72.831998"
+     inkscape:window-width="2560"
+     inkscape:window-height="1373"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1">
+     inkscape:current-layer="layer2">
     <inkscape:grid
        type="xygrid"
        id="grid3654"
@@ -45,7 +45,8 @@
      inkscape:label="Grid"
      inkscape:groupmode="layer"
      id="layer1"
-     style="display:inline">
+     style="display:none"
+     sodipodi:insensitive="true">
     <rect
        style="opacity:1;fill:#9c8776;fill-opacity:1;stroke-width:0.264583;stroke-linecap:round;stroke-linejoin:round"
        id="rect234"
@@ -1915,6 +1916,15 @@
      id="layer2"
      inkscape:label="Stuff"
      style="display:inline">
+    <circle
+       style="fill:#c6dbe6;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;fill-opacity:1"
+       id="path651"
+       cx="96"
+       cy="96"
+       r="28"
+       inkscape:export-filename="coin.png"
+       inkscape:export-xdpi="384"
+       inkscape:export-ydpi="384" />
     <rect
        style="fill:#c6dbe6;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        id="rect9174"
@@ -2095,18 +2105,50 @@
        style="fill:none;stroke:#303547;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        d="m 282.34315,26.343146 11.3137,11.313708"
        id="path12246" />
-    <circle
-       style="fill:#ecf9fc;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       id="path13816"
-       cx="96"
-       cy="96"
-       r="24"
-       inkscape:export-filename="coin.png"
-       inkscape:export-xdpi="384"
-       inkscape:export-ydpi="384" />
     <path
        id="path13809"
        style="fill:#303547;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        d="M 96 72 A 24 24 0 0 0 72 96 A 24 24 0 0 0 96 120 A 24 24 0 0 0 120 96 A 24 24 0 0 0 96 72 z M 96 76 A 20 20 0 0 1 116 96 A 20 20 0 0 1 96 116 A 20 20 0 0 1 76 96 A 20 20 0 0 1 96 76 z " />
+    <rect
+       style="fill:#ecf9fc;stroke-width:4;stroke-linecap:round;stroke-linejoin:round"
+       id="rect590"
+       width="64"
+       height="64"
+       x="128"
+       y="64"
+       inkscape:export-filename=".\locked.png"
+       inkscape:export-xdpi="384"
+       inkscape:export-ydpi="384" />
+    <path
+       id="path646"
+       style="fill:#c6dbe6;fill-opacity:1;stroke-width:4;stroke-linecap:round;stroke-linejoin:round"
+       d="m 140,68 a 8,8 0 0 0 -8,8 v 40 a 8,8 0 0 0 8,8 h 40 a 8,8 0 0 0 8,-8 V 76 a 8,8 0 0 0 -8,-8 z m 0,4 h 40 a 4,4 0 0 1 4,4 v 40 a 4,4 0 0 1 -4,4 h -40 a 4,4 0 0 1 -4,-4 V 76 a 4,4 0 0 1 4,-4 z"
+       inkscape:label="Spot"
+       inkscape:export-filename="spot.png"
+       inkscape:export-xdpi="384"
+       inkscape:export-ydpi="384" />
+    <rect
+       style="fill:#c6dbe6;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       id="rect2108"
+       width="64"
+       height="64"
+       x="192"
+       y="64"
+       rx="12"
+       inkscape:export-filename=".\panel.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <rect
+       style="fill:#ecf9fc;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       id="rect2110"
+       width="56"
+       height="56"
+       x="196"
+       y="68"
+       rx="8" />
+    <path
+       id="rect651"
+       style="fill:#9c8776;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;fill-opacity:1"
+       d="M 160 80 A 8 8 0 0 0 152.01953 87.714844 A 2 2 0 0 0 152 88 A 2 2 0 0 0 154 90 A 2 2 0 0 0 156 88 A 4 4 0 0 1 160 84 A 4 4 0 0 1 164 88 A 2 2 0 0 0 166 90 A 2 2 0 0 0 168 88 A 8 8 0 0 0 167.99805 87.902344 A 2 2 0 0 0 167.99805 87.900391 A 2 2 0 0 0 167.99805 87.898438 A 8 8 0 0 0 160 80 z M 152 94 C 149.784 94 148 95.784006 148 98 L 148 110 C 148 112.216 149.784 114 152 114 L 168 114 C 170.216 114 172 112.216 172 110 L 172 98 C 172 95.784006 170.216 94 168 94 L 152 94 z M 154 98 L 166 98 C 167.108 98 168 98.892001 168 100 L 168 108 C 168 109.108 167.108 110 166 110 L 154 110 C 152.892 110 152 109.108 152 108 L 152 100 C 152 98.892001 152.892 98 154 98 z M 160 102 A 2 2 0 0 0 158 104 A 2 2 0 0 0 160 106 A 2 2 0 0 0 162 104 A 2 2 0 0 0 160 102 z " />
   </g>
 </svg>

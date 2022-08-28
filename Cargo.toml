@@ -20,6 +20,7 @@ default-features = false
 features = [
     "bevy_asset",
     "bevy_scene",
+    "bevy_ui",
     "render",
     "bevy_winit",
     "png",

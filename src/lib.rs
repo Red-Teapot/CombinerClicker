@@ -5,5 +5,6 @@ mod game;
 pub mod palette;
 pub mod assets;
 pub mod title;
+pub mod gameplay;
 
 pub use game::*;

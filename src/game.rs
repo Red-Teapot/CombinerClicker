@@ -1,10 +1,12 @@
+use bevy::math::vec3;
 use bevy::prelude::*;
+use bevy::prelude::Val::Percent;
 use bevy_kira_audio::AudioPlugin;
 use bevy_ninepatch::NinePatchPlugin;
 use bevy_tweening::TweeningPlugin;
 use iyes_loopless::prelude::*;
 use crate::assets::GameAssets;
-use crate::{assets, palette, title};
+use crate::{assets, gameplay, palette, title};
 
 pub fn run(app: &mut App) {
     app.insert_resource(WindowDescriptor {
@@ -32,11 +34,34 @@ impl Plugin for GamePlugin {
         app
             .insert_resource(ClearColor(palette::OFF_WHITE))
             .add_startup_system(assets::load_assets)
+            .add_startup_system(startup_game)
             .add_loopless_state(GameState::Title)
             .add_enter_system(GameState::Title, title::startup_title)
-            .add_system(title::handle_title_click.run_in_state(GameState::Title));
+            .add_system(title::handle_title_click.run_in_state(GameState::Title))
+            .add_enter_system(GameState::Gameplay, gameplay::systems::startup_gameplay)
+            .add_system(gameplay::systems::handle_bg_input.run_in_state(GameState::Gameplay))
+            .add_system(gameplay::systems::zoom_camera.run_in_state(GameState::Gameplay));
     }
 }
+
+pub fn startup_game(mut commands: Commands) {
+    commands.spawn_bundle(Camera2dBundle {
+        ..default()
+    });
+
+    commands.spawn_bundle(ButtonBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            size: Size::new(Percent(100.0), Percent(100.0)),
+            ..default()
+        },
+        color: Color::NONE.into(),
+        ..default()
+    }).insert(BackgroundInteraction);
+}
+
+#[derive(Component)]
+pub struct BackgroundInteraction;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GameState {
