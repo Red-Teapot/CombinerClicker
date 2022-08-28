@@ -129,7 +129,7 @@ pub struct TilePosition {
 }
 
 impl TilePosition {
-    const TILE_SIZE: f32 = 64.0;
+    const TILE_SIZE: f32 = 64.0 * 4.0;
 
     pub fn new(x: i32, y: i32) -> TilePosition {
         TilePosition {
@@ -189,4 +189,21 @@ impl TileTrackedEntities {
     pub fn get_entities_in_tile_mut(&mut self, tile_pos: TilePosition) -> Option<&mut Vec<Entity>> {
         self.map.get_mut(&tile_pos)
     }
+}
+
+#[derive(Component)]
+pub enum BuildingGhost {
+    Spot {
+        offset_x: i32,
+        offset_y: i32,
+    },
+    Machine(Machine),
+}
+
+#[derive(Component)]
+pub struct Spot;
+
+#[derive(Component)]
+pub struct PlacedMachine {
+    pub machine: Machine,
 }

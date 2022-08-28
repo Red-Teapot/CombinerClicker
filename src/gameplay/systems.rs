@@ -1,4 +1,5 @@
 use std::f32::consts::PI;
+use std::ops::Add;
 use std::time::Duration;
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use bevy::math::{vec2, vec3};
@@ -7,7 +8,7 @@ use bevy::prelude::Val::{Px, Undefined};
 use bevy::ui::FocusPolicy;
 use bevy_ninepatch::{NinePatchBundle, NinePatchData};
 use bevy_tweening::*;
-use bevy_tweening::lens::{TransformPositionLens, TransformScaleLens};
+use bevy_tweening::lens::{TransformPositionLens, TransformScaleLens, UiPositionLens};
 use crate::assets::GameAssets;
 use crate::{BackgroundInteraction, palette};
 use crate::gameplay::components::*;
@@ -132,6 +133,7 @@ pub fn startup_gameplay(mut commands: Commands,
                             },
                             ..default()
                         },
+                        focus_policy: FocusPolicy::Pass,
                         ..default()
                     }).insert(MachineName(*machine));
 
@@ -141,6 +143,7 @@ pub fn startup_gameplay(mut commands: Commands,
                             size: Size::new(Px(64.0), Px(64.0)),
                             ..default()
                         },
+                        focus_policy: FocusPolicy::Pass,
                         ..default()
                     }).insert(MachineIcon(*machine));
 
@@ -150,6 +153,7 @@ pub fn startup_gameplay(mut commands: Commands,
                             color: palette::DARK_BLUE,
                             font_size: 28.0,
                         }),
+                        focus_policy: FocusPolicy::Pass,
                         ..default()
                     });
                 }).insert(MachineBuyButton {
@@ -394,8 +398,14 @@ fn spawn_coin(commands: &mut Commands, assets: &Res<GameAssets>, value: usize, p
 }
 
 pub fn click_coins(mut commands: Commands,
+                   mut ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
                    assets: Res<GameAssets>,
                    mut world_mouse_events: EventReader<WorldMouseEvent>) {
+    if !ghosts.is_empty() {
+        world_mouse_events.clear();
+        return;
+    }
+
     for event in world_mouse_events.iter() {
         match event {
             WorldMouseEvent::Click { position } => {
@@ -455,7 +465,7 @@ pub fn update_coins(mut commands: Commands,
     }
 }
 
-pub fn hover_coins(mut coins: Query<(&Transform, &Coin)>,
+pub fn hover_coins(mut coins: Query<(&Transform, &Coin), Without<BuildingGhost>>,
                    mut world_mouse_events: EventReader<WorldMouseEvent>,
                    mut tile_tracked_entities: ResMut<TileTrackedEntities>,
                    mut coin_pickup_events: EventWriter<CoinPickup>) {
@@ -479,7 +489,7 @@ pub fn hover_coins(mut coins: Query<(&Transform, &Coin)>,
                     if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile) {
                         for &entity in entities {
                             if let Ok((transform, coin)) = coins.get(entity) {
-                                if coin.pickable() && position.distance(transform.translation.truncate()) <= 320.0 {
+                                if coin.pickable() && position.distance(transform.translation.truncate()) <= 192.0 {
                                     coin_pickup_events.send(CoinPickup {
                                         coin: entity,
                                         target: *position,
@@ -500,7 +510,8 @@ pub fn update_money(money_res: Res<Money>,
                     assets: Res<GameAssets>,
                     mut money_display: Query<&mut Text, With<MoneyDisplay>>,
                     mut machine_names: Query<(&mut Text, &MachineName), Without<MoneyDisplay>>,
-                    mut machine_icons: Query<(&mut UiImage, &MachineIcon)>) {
+                    mut machine_icons: Query<(&mut UiImage, &MachineIcon)>,
+                    mut machine_buy_buttons: Query<&mut MachineBuyButton>) {
     if !money_res.is_changed() {
         return;
     }
@@ -519,6 +530,338 @@ pub fn update_money(money_res: Res<Money>,
             image.0 = machine.image(&assets);
         } else {
             image.0 = assets.locked.clone();
+        }
+    }
+
+    for mut button in machine_buy_buttons.iter_mut() {
+        button.enabled = money_res.0 >= button.machine.cost();
+    }
+}
+
+pub fn handle_machine_buy_buttons(mut commands: Commands,
+                                  ghosts: Query<&BuildingGhost>,
+                                  assets: Res<GameAssets>,
+                                  buttons: Query<(Entity, &Interaction, &MachineBuyButton), Changed<Interaction>>,
+                                  mut money: ResMut<Money>) {
+    for (entity, interaction, button) in buttons.iter() {
+        if !button.enabled {
+            continue;
+        }
+
+        match interaction {
+            Interaction::Clicked => {
+                if !ghosts.is_empty() {
+                    continue;
+                }
+
+                money.0 -= button.machine.cost();
+
+                match button.machine {
+                    Machine::Miner => {
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.miner.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Machine(Machine::Miner));
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
+                    }
+
+                    Machine::Collector => {
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.collector.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Machine(Machine::Collector));
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: 1 });
+                    }
+
+                    Machine::Adder => {
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.adder.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Machine(Machine::Adder));
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 1, offset_y: 0 });
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
+                    }
+
+                    Machine::Multiplicator => {
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.multiplicator.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Machine(Machine::Multiplicator));
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 1, offset_y: 0 });
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
+                    }
+                }
+
+                commands.entity(entity)
+                    .insert(Animator::new(Tween::new(
+                        EaseFunction::CubicOut,
+                        TweeningType::Once,
+                        Duration::from_secs_f32(0.2),
+                        UiPositionLens {
+                            start: UiRect::new(Undefined, Undefined, Undefined, Px(8.0)),
+                            end: UiRect::new(Undefined, Undefined, Undefined, Px(0.0)),
+                        }
+                    )));
+            }
+
+            Interaction::Hovered => {
+                commands.entity(entity)
+                    .insert(Animator::new(Tween::new(
+                        EaseFunction::CubicOut,
+                        TweeningType::Once,
+                        Duration::from_secs_f32(0.2),
+                        UiPositionLens {
+                            start: UiRect::new(Undefined, Undefined, Undefined, Px(0.0)),
+                            end: UiRect::new(Undefined, Undefined, Undefined, Px(8.0)),
+                        }
+                    )));
+            }
+
+            Interaction::None => {
+                commands.entity(entity)
+                    .insert(Animator::new(Tween::new(
+                        EaseFunction::CubicOut,
+                        TweeningType::Once,
+                        Duration::from_secs_f32(0.2),
+                        UiPositionLens {
+                            start: UiRect::new(Undefined, Undefined, Undefined, Px(8.0)),
+                            end: UiRect::new(Undefined, Undefined, Undefined, Px(0.0)),
+                        }
+                    )));
+            }
+        }
+    }
+}
+
+pub fn drag_ghosts(tile_tracked_entities: Res<TileTrackedEntities>,
+                   mut ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
+                   mut world_mouse_events: EventReader<WorldMouseEvent>) {
+    let mut hover_position = None;
+
+    for event in world_mouse_events.iter() {
+        if let WorldMouseEvent::Hover { position } = event {
+            hover_position = Some(*position);
+        }
+    }
+
+    if hover_position.is_none() {
+        return;
+    }
+
+    let hover_tile = TilePosition::from_world(hover_position.unwrap());
+
+    for (_, mut transform, ghost) in ghosts.iter_mut() {
+        match ghost {
+            BuildingGhost::Machine(_) => {
+                transform.translation = hover_tile.to_world().add(Vec2::splat(32.0 * 4.0)).extend(0.0);
+            }
+
+            BuildingGhost::Spot { offset_x, offset_y } => {
+                transform.translation = hover_tile.offset(*offset_x, *offset_y).to_world().add(Vec2::splat(32.0 * 4.0)).extend(0.0);
+            }
+        }
+    }
+}
+
+pub fn place_ghosts(mut commands: Commands,
+                    tile_tracked_entities: Res<TileTrackedEntities>,
+                    mut ghosts: Query<(Entity, &mut Transform, &mut Sprite, &BuildingGhost), Without<PlacedMachine>>,
+                    placed_machines: Query<(&Transform, &PlacedMachine), Without<BuildingGhost>>,
+                    placed_spots: Query<(&Transform, &Spot), (Without<PlacedMachine>, Without<BuildingGhost>)>,
+                    mut world_mouse_events: EventReader<WorldMouseEvent>) {
+    let mut clicked = false;
+
+    for event in world_mouse_events.iter() {
+        match event {
+            WorldMouseEvent::Click { .. } => {
+                clicked = true;
+            }
+
+            _ => ()
+        }
+    }
+
+    if !clicked {
+        return;
+    }
+
+    let mut can_place = true;
+
+    for (_, transform, _, ghost) in ghosts.iter() {
+        let tile = TilePosition::from_world(transform.translation.truncate());
+
+        if let Some(tile_entities) = tile_tracked_entities.get_entities_in_tile(tile) {
+            match ghost {
+                BuildingGhost::Spot { .. } => {
+                    for &entity in tile_entities {
+                        if let Ok((machine_transform, _)) = placed_machines.get(entity) {
+                            let machine_tile = TilePosition::from_world(machine_transform.translation.truncate());
+
+                            if machine_tile == tile {
+                                can_place = false;
+                            }
+                        }
+                    }
+                }
+
+                BuildingGhost::Machine( .. ) => {
+                    for &entity in tile_entities {
+                        if let Ok((machine_transform, _)) = placed_machines.get(entity) {
+                            let machine_tile = TilePosition::from_world(machine_transform.translation.truncate());
+
+                            if machine_tile == tile {
+                                can_place = false;
+                            }
+                        }
+
+                        if let Ok((spot_transform, _)) = placed_spots.get(entity) {
+                            let spot_tile = TilePosition::from_world(spot_transform.translation.truncate());
+
+                            if spot_tile == tile {
+                                can_place = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if !can_place {
+        return;
+    }
+
+    for (entity, transform, mut sprite, ghost) in ghosts.iter_mut() {
+        match ghost {
+            BuildingGhost::Spot { .. } => {
+                let tile = TilePosition::from_world(transform.translation.truncate());
+                let mut despawned = false;
+
+                if let Some(tile_entities) = tile_tracked_entities.get_entities_in_tile(tile) {
+                    for &tile_entity in tile_entities {
+                        if let Ok((spot_transform, _)) = placed_spots.get(tile_entity) {
+                            let spot_tile = TilePosition::from_world(spot_transform.translation.truncate());
+
+                            if spot_tile == tile {
+                                commands.entity(entity).despawn_recursive();
+                                despawned = true;
+                            }
+                        }
+                    }
+                }
+
+                if !despawned {
+                    sprite.color = Color::WHITE;
+                    commands.entity(entity)
+                        .remove::<BuildingGhost>()
+                        .insert(Spot)
+                        .insert(TileTrackedEntity);
+                }
+            }
+
+            BuildingGhost::Machine(machine) => {
+                sprite.color = Color::WHITE;
+                commands.entity(entity)
+                    .remove::<BuildingGhost>()
+                    .insert(PlacedMachine {
+                        machine: *machine,
+                    })
+                    .insert(TileTrackedEntity);
+            }
         }
     }
 }

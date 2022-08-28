@@ -61,6 +61,14 @@ impl Plugin for GamePlugin {
                 .with_system(gameplay::systems::update_coins)
                 .with_system(gameplay::systems::move_particles)
                 .with_system(gameplay::systems::update_money)
+                .with_system(gameplay::systems::handle_machine_buy_buttons)
+                .with_system(gameplay::systems::drag_ghosts)
+                .with_system(gameplay::systems::place_ghosts)
+                .into())
+            .add_system_set(ConditionSet::new()
+                .run_in_state(GameState::Gameplay)
+                .label(GameSystemLabel::AfterGeneral)
+                .after(GameSystemLabel::General)
                 .into());
     }
 }
@@ -70,6 +78,7 @@ impl Plugin for GamePlugin {
 enum GameSystemLabel {
     BeforeGeneral,
     General,
+    AfterGeneral,
 }
 
 pub fn startup_game(mut commands: Commands) {
