@@ -7,6 +7,7 @@ use bevy_tweening::TweeningPlugin;
 use iyes_loopless::prelude::*;
 use crate::assets::GameAssets;
 use crate::{assets, gameplay, palette, title};
+use crate::gameplay::components::{CoinPickup, WorldMouseEvent};
 
 pub fn run(app: &mut App) {
     app.insert_resource(WindowDescriptor {
@@ -39,9 +40,33 @@ impl Plugin for GamePlugin {
             .add_enter_system(GameState::Title, title::startup_title)
             .add_system(title::handle_title_click.run_in_state(GameState::Title))
             .add_enter_system(GameState::Gameplay, gameplay::systems::startup_gameplay)
-            .add_system(gameplay::systems::handle_bg_input.run_in_state(GameState::Gameplay))
-            .add_system(gameplay::systems::zoom_camera.run_in_state(GameState::Gameplay));
+            .add_event::<WorldMouseEvent>()
+            .add_event::<CoinPickup>()
+            .add_system_set(ConditionSet::new()
+                .run_in_state(GameState::Gameplay)
+                .label(GameSystemLabel::BeforeGeneral)
+                .before(GameSystemLabel::General)
+                .with_system(gameplay::systems::track_tile_entities)
+                .with_system(gameplay::systems::handle_bg_input)
+                .into())
+            .add_system_set(ConditionSet::new()
+                .run_in_state(GameState::Gameplay)
+                .label(GameSystemLabel::General)
+                .with_system(gameplay::systems::zoom_camera)
+                .with_system(gameplay::systems::drag_camera)
+                .with_system(gameplay::systems::click_coins)
+                .with_system(gameplay::systems::hover_coins)
+                .with_system(gameplay::systems::update_coins)
+                .with_system(gameplay::systems::move_particles)
+                .into());
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(SystemLabel)]
+enum GameSystemLabel {
+    BeforeGeneral,
+    General,
 }
 
 pub fn startup_game(mut commands: Commands) {
