@@ -242,14 +242,22 @@ pub fn handle_bg_input(mut world_mouse_state: ResMut<WorldMouseState>,
                 };
             }
 
-            Interaction::Hovered => match *world_mouse_state {
-                WorldMouseState::None => {
-                    world_mouse_events.send(WorldMouseEvent::Hover {
+            Interaction::Hovered => {
+                if buttons.just_pressed(MouseButton::Right) {
+                    world_mouse_events.send(WorldMouseEvent::RightClick {
                         position: cursor_position_world,
                     });
                 }
 
-                _ => { }
+                match *world_mouse_state {
+                    WorldMouseState::None => {
+                        world_mouse_events.send(WorldMouseEvent::Hover {
+                            position: cursor_position_world,
+                        });
+                    }
+
+                    _ => { }
+                }
             }
 
             _ => { }
@@ -288,7 +296,7 @@ pub fn handle_bg_input(mut world_mouse_state: ResMut<WorldMouseState>,
 
             if released {
                 if suitable_for_click {
-                    world_mouse_events.send(WorldMouseEvent::Click {
+                    world_mouse_events.send(WorldMouseEvent::LeftClick {
                         position: position_world,
                     });
                 } else {
@@ -414,7 +422,7 @@ pub fn click_coins(mut commands: Commands,
 
     for event in world_mouse_events.iter() {
         match event {
-            WorldMouseEvent::Click { position } => {
+            WorldMouseEvent::LeftClick { position } => {
                 let initial_velocity = Vec2::from_angle(rand::random::<f32>() * 2.0 * PI) * 80.0;
                 spawn_coin(&mut commands, &assets, 1, *position, initial_velocity, 0.6);
             }
@@ -430,7 +438,13 @@ pub fn update_coins(mut commands: Commands,
                     mut money: ResMut<Money>,
                     mut coin_pickup_events: EventReader<CoinPickup>) {
     for event in coin_pickup_events.iter() {
-        let (_, transform, mut coin, _) = coins.get_mut(event.coin).unwrap();
+        let coin = coins.get_mut(event.coin);
+
+        if coin.is_err() {
+            continue;
+        }
+
+        let (_, transform, mut coin, _) = coin.unwrap();
 
         const DESPAWN_DURATION: f32 = 0.1;
 
@@ -906,7 +920,7 @@ pub fn place_ghosts(mut commands: Commands,
 
     for event in world_mouse_events.iter() {
         match event {
-            WorldMouseEvent::Click { .. } => {
+            WorldMouseEvent::LeftClick { .. } => {
                 clicked = true;
             }
 
@@ -954,15 +968,6 @@ pub fn place_ghosts(mut commands: Commands,
 
                 if let Some(tile_entities) = tile_tracked_entities.get_entities_in_tile(tile) {
                     for &tile_entity in tile_entities {
-                        if let Ok((spot_transform, _)) = placed_spots.get(tile_entity) {
-                            let spot_tile = TilePosition::from_world(spot_transform.translation.truncate());
-
-                            if spot_tile == tile {
-                                commands.entity(entity).despawn_recursive();
-                                despawned = true;
-                            }
-                        }
-
                         if let Ok((machine_transform, _)) = placed_machines.get(tile_entity) {
                             let machine_tile = TilePosition::from_world(machine_transform.translation.truncate());
 
@@ -985,6 +990,20 @@ pub fn place_ghosts(mut commands: Commands,
             }
 
             BuildingGhost::Machine(machine) => {
+                let tile = TilePosition::from_world(transform.translation.truncate());
+
+                if let Some(tile_entities) = tile_tracked_entities.get_entities_in_tile(tile) {
+                    for &tile_entity in tile_entities {
+                        if let Ok((spot_transform, _)) = placed_spots.get(tile_entity) {
+                            let spot_tile = TilePosition::from_world(spot_transform.translation.truncate());
+
+                            if spot_tile == tile {
+                                commands.entity(tile_entity).despawn_recursive();
+                            }
+                        }
+                    }
+                }
+
                 sprite.color = Color::WHITE;
                 commands.entity(entity)
                     .remove::<BuildingGhost>()
@@ -1149,6 +1168,72 @@ pub fn act_machines(mut commands: Commands,
                     }
                 }
             }
+        }
+    }
+}
+
+pub fn destroy_machines(mut commands: Commands,
+                        mut world_mouse_events: EventReader<WorldMouseEvent>,
+                        machines: Query<&PlacedMachine, Without<Spot>>,
+                        spots: Query<&Spot, Without<PlacedMachine>>,
+                        tile_tracked_entities: Res<TileTrackedEntities>) {
+    let try_despawn_spot = |tile_pos: TilePosition, commands: &mut Commands| {
+        if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile_pos) {
+            for &entity in entities {
+                if let Ok(_) = spots.get(entity) {
+                    commands.entity(entity).despawn_recursive();
+                    break;
+                }
+            }
+        }
+    };
+
+    for event in world_mouse_events.iter() {
+        match event {
+            WorldMouseEvent::RightClick { position } => {
+                let tile_pos = TilePosition::from_world(*position);
+
+                if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile_pos) {
+                    for &machine_entity in entities {
+                        if let Ok(machine) = machines.get(machine_entity) {
+                            commands.entity(machine_entity).despawn_recursive();
+
+                            match machine.machine {
+                                Machine::Miner => try_despawn_spot(tile_pos.offset(0, -1), &mut commands),
+                                Machine::Collector => try_despawn_spot(tile_pos.offset(0, 1), &mut commands),
+                                Machine::ConveyorUp => {
+                                    try_despawn_spot(tile_pos.offset(0, 1), &mut commands);
+                                    try_despawn_spot(tile_pos.offset(0, -1), &mut commands);
+                                }
+                                Machine::ConveyorDown => {
+                                    try_despawn_spot(tile_pos.offset(0, 1), &mut commands);
+                                    try_despawn_spot(tile_pos.offset(0, -1), &mut commands);
+                                }
+                                Machine::ConveyorLeft => {
+                                    try_despawn_spot(tile_pos.offset(1, 0), &mut commands);
+                                    try_despawn_spot(tile_pos.offset(-1, 0), &mut commands);
+                                }
+                                Machine::ConveyorRight => {
+                                    try_despawn_spot(tile_pos.offset(1, 0), &mut commands);
+                                    try_despawn_spot(tile_pos.offset(-1, 0), &mut commands);
+                                }
+                                Machine::Adder => {
+                                    try_despawn_spot(tile_pos.offset(1, 0), &mut commands);
+                                    try_despawn_spot(tile_pos.offset(-1, 0), &mut commands);
+                                    try_despawn_spot(tile_pos.offset(0, -1), &mut commands);
+                                }
+                                Machine::Multiplicator => {
+                                    try_despawn_spot(tile_pos.offset(1, 0), &mut commands);
+                                    try_despawn_spot(tile_pos.offset(-1, 0), &mut commands);
+                                    try_despawn_spot(tile_pos.offset(0, -1), &mut commands);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            _ => ()
         }
     }
 }

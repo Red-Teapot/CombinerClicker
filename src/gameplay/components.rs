@@ -141,7 +141,10 @@ pub enum WorldMouseState {
 }
 
 pub enum WorldMouseEvent {
-    Click {
+    LeftClick {
+        position: Vec2,
+    },
+    RightClick {
         position: Vec2,
     },
     Hover {

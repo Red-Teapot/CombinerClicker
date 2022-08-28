@@ -63,6 +63,7 @@ impl Plugin for GamePlugin {
                 .with_system(gameplay::systems::drag_ghosts)
                 .with_system(gameplay::systems::place_ghosts)
                 .with_system(gameplay::systems::act_machines)
+                .with_system(gameplay::systems::destroy_machines)
                 .into())
             .add_system_set(ConditionSet::new()
                 .run_in_state(GameState::Gameplay)
