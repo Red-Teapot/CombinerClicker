@@ -10,6 +10,11 @@ pub struct GameAssets {
     pub coin: Handle<Image>,
     pub spot: Handle<Image>,
 
+    pub conveyor_up: Handle<Image>,
+    pub conveyor_down: Handle<Image>,
+    pub conveyor_left: Handle<Image>,
+    pub conveyor_right: Handle<Image>,
+
     pub miner: Handle<Image>,
     pub collector: Handle<Image>,
 
@@ -27,6 +32,10 @@ pub fn load_assets(mut commands: Commands,
         locked: make_image_png(&mut image_assets, include_bytes!("../assets/locked.png")),
         coin: make_image_png(&mut image_assets, include_bytes!("../assets/coin.png")),
         spot: make_image_png(&mut image_assets, include_bytes!("../assets/spot.png")),
+        conveyor_up: make_image_png(&mut image_assets, include_bytes!("../assets/conveyor-up.png")),
+        conveyor_down: make_image_png(&mut image_assets, include_bytes!("../assets/conveyor-down.png")),
+        conveyor_left: make_image_png(&mut image_assets, include_bytes!("../assets/conveyor-left.png")),
+        conveyor_right: make_image_png(&mut image_assets, include_bytes!("../assets/conveyor-right.png")),
         miner: make_image_png(&mut image_assets, include_bytes!("../assets/miner.png")),
         collector: make_image_png(&mut image_assets, include_bytes!("../assets/collector.png")),
         adder: make_image_png(&mut image_assets, include_bytes!("../assets/adder.png")),

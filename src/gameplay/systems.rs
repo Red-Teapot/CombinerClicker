@@ -612,6 +612,134 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                         }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: 1 });
                     }
 
+                    Machine::ConveyorUp => {
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.conveyor_up.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Machine(Machine::ConveyorUp));
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: 1 });
+                    }
+
+                    Machine::ConveyorDown => {
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.conveyor_down.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Machine(Machine::ConveyorDown));
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: 1 });
+                    }
+
+                    Machine::ConveyorLeft => {
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.conveyor_left.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Machine(Machine::ConveyorLeft));
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 1, offset_y: 0 });
+                    }
+
+                    Machine::ConveyorRight => {
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.conveyor_right.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Machine(Machine::ConveyorRight));
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
+
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: assets.spot.clone(),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                ..default()
+                            },
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                            ..default()
+                        }).insert(BuildingGhost::Spot { offset_x: 1, offset_y: 0 });
+                    }
+
                     Machine::Adder => {
                         commands.spawn_bundle(SpriteBundle {
                             texture: assets.adder.clone(),
@@ -797,17 +925,7 @@ pub fn place_ghosts(mut commands: Commands,
 
         if let Some(tile_entities) = tile_tracked_entities.get_entities_in_tile(tile) {
             match ghost {
-                BuildingGhost::Spot { .. } => {
-                    for &entity in tile_entities {
-                        if let Ok((machine_transform, _)) = placed_machines.get(entity) {
-                            let machine_tile = TilePosition::from_world(machine_transform.translation.truncate());
-
-                            if machine_tile == tile {
-                                can_place = false;
-                            }
-                        }
-                    }
-                }
+                BuildingGhost::Spot { .. } => (),
 
                 BuildingGhost::Machine( .. ) => {
                     for &entity in tile_entities {
@@ -815,14 +933,6 @@ pub fn place_ghosts(mut commands: Commands,
                             let machine_tile = TilePosition::from_world(machine_transform.translation.truncate());
 
                             if machine_tile == tile {
-                                can_place = false;
-                            }
-                        }
-
-                        if let Ok((spot_transform, _)) = placed_spots.get(entity) {
-                            let spot_tile = TilePosition::from_world(spot_transform.translation.truncate());
-
-                            if spot_tile == tile {
                                 can_place = false;
                             }
                         }
@@ -848,6 +958,15 @@ pub fn place_ghosts(mut commands: Commands,
                             let spot_tile = TilePosition::from_world(spot_transform.translation.truncate());
 
                             if spot_tile == tile {
+                                commands.entity(entity).despawn_recursive();
+                                despawned = true;
+                            }
+                        }
+
+                        if let Ok((machine_transform, _)) = placed_machines.get(tile_entity) {
+                            let machine_tile = TilePosition::from_world(machine_transform.translation.truncate());
+
+                            if machine_tile == tile {
                                 commands.entity(entity).despawn_recursive();
                                 despawned = true;
                             }
@@ -951,6 +1070,58 @@ pub fn act_machines(mut commands: Commands,
                         }
 
                         _ => ()
+                    }
+                }
+
+                Machine::ConveyorUp => {
+                    let coin_stuff = find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(0, -1)));
+
+                    if let Some((entity, _, money)) = coin_stuff {
+                        coin_pickups.send(CoinPickup {
+                            coin: entity,
+                            target: position,
+                            add_money: false,
+                        });
+                        spew_coin(position, money.0, PI / 2.0);
+                    }
+                }
+
+                Machine::ConveyorDown => {
+                    let coin_stuff = find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(0, 1)));
+
+                    if let Some((entity, _, money)) = coin_stuff {
+                        coin_pickups.send(CoinPickup {
+                            coin: entity,
+                            target: position,
+                            add_money: false,
+                        });
+                        spew_coin(position, money.0, -PI / 2.0);
+                    }
+                }
+
+                Machine::ConveyorLeft => {
+                    let coin_stuff = find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(1, 0)));
+
+                    if let Some((entity, _, money)) = coin_stuff {
+                        coin_pickups.send(CoinPickup {
+                            coin: entity,
+                            target: position,
+                            add_money: false,
+                        });
+                        spew_coin(position, money.0, PI);
+                    }
+                }
+
+                Machine::ConveyorRight => {
+                    let coin_stuff = find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(-1, 0)));
+
+                    if let Some((entity, _, money)) = coin_stuff {
+                        coin_pickups.send(CoinPickup {
+                            coin: entity,
+                            target: position,
+                            add_money: false,
+                        });
+                        spew_coin(position, money.0, 0.0);
                     }
                 }
 

@@ -24,10 +24,10 @@
      inkscape:pagecheckerboard="false"
      inkscape:deskcolor="#505050"
      inkscape:document-units="px"
-     showgrid="false"
-     inkscape:zoom="3.5355339"
-     inkscape:cx="140.99709"
-     inkscape:cy="72.831998"
+     showgrid="true"
+     inkscape:zoom="5"
+     inkscape:cx="139.1"
+     inkscape:cy="152.3"
      inkscape:window-width="2560"
      inkscape:window-height="1373"
      inkscape:window-x="-9"
@@ -2150,5 +2150,149 @@
        id="rect651"
        style="fill:#9c8776;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;fill-opacity:1"
        d="M 160 80 A 8 8 0 0 0 152.01953 87.714844 A 2 2 0 0 0 152 88 A 2 2 0 0 0 154 90 A 2 2 0 0 0 156 88 A 4 4 0 0 1 160 84 A 4 4 0 0 1 164 88 A 2 2 0 0 0 166 90 A 2 2 0 0 0 168 88 A 8 8 0 0 0 167.99805 87.902344 A 2 2 0 0 0 167.99805 87.900391 A 2 2 0 0 0 167.99805 87.898438 A 8 8 0 0 0 160 80 z M 152 94 C 149.784 94 148 95.784006 148 98 L 148 110 C 148 112.216 149.784 114 152 114 L 168 114 C 170.216 114 172 112.216 172 110 L 172 98 C 172 95.784006 170.216 94 168 94 L 152 94 z M 154 98 L 166 98 C 167.108 98 168 98.892001 168 100 L 168 108 C 168 109.108 167.108 110 166 110 L 154 110 C 152.892 110 152 109.108 152 108 L 152 100 C 152 98.892001 152.892 98 154 98 z M 160 102 A 2 2 0 0 0 158 104 A 2 2 0 0 0 160 106 A 2 2 0 0 0 162 104 A 2 2 0 0 0 160 102 z " />
+    <rect
+       style="fill:#c6dbe6;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       id="rect597"
+       width="64"
+       height="64"
+       x="0"
+       y="128"
+       rx="12"
+       inkscape:export-filename="conveyor-left.png"
+       inkscape:export-xdpi="384"
+       inkscape:export-ydpi="384" />
+    <rect
+       style="fill:#ecf9fc;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       id="rect599"
+       width="56"
+       height="56"
+       x="4"
+       y="132"
+       rx="8" />
+    <path
+       id="path601"
+       style="fill:#9c8776;fill-opacity:1;stroke-width:4;stroke-linecap:round;stroke-linejoin:round"
+       d="M 12 132 A 8 8 0 0 0 4 140 L 4 144 A 4 4 0 0 0 8 140 A 4 4 0 0 1 12 136 L 52 136 A 4 4 0 0 1 56 140 A 4 4 0 0 0 60 144 L 60 140 A 8 8 0 0 0 52 132 L 12 132 z M 4 176 L 4 180 A 8 8 0 0 0 12 188 L 16 188 L 20 188 L 24 188 L 40 188 L 47 188 L 52 188 A 8 8 0 0 0 60 180 L 60 176 A 4 4 0 0 0 56 180 A 4 4 0 0 1 52 184 L 47 184 L 44 184 L 20 184 L 16 184 L 12 184 A 4 4 0 0 1 8 180 A 4 4 0 0 0 4 176 z " />
+    <path
+       style="fill:none;stroke:#2d61a3;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 56,172 -8,-12 8,-12"
+       id="path605" />
+    <path
+       style="fill:none;stroke:#dc9c19;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="M 16,172 8,160 16,148"
+       id="path607" />
+    <rect
+       style="fill:#c6dbe6;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       id="rect829"
+       width="64"
+       height="64"
+       x="-128"
+       y="128"
+       rx="12"
+       inkscape:export-filename="conveyor-right.png"
+       inkscape:export-xdpi="384"
+       inkscape:export-ydpi="384"
+       transform="scale(-1,1)" />
+    <rect
+       style="fill:#ecf9fc;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       id="rect831"
+       width="56"
+       height="56"
+       x="-124"
+       y="132"
+       rx="8"
+       transform="scale(-1,1)" />
+    <path
+       id="path833"
+       style="fill:#9c8776;fill-opacity:1;stroke-width:4;stroke-linecap:round;stroke-linejoin:round"
+       d="m 116,132 a 8,8 0 0 1 8,8 v 4 a 4,4 0 0 1 -4,-4 4,4 0 0 0 -4,-4 H 76 a 4,4 0 0 0 -4,4 4,4 0 0 1 -4,4 v -4 a 8,8 0 0 1 8,-8 z m 8,44 v 4 a 8,8 0 0 1 -8,8 h -4 -4 -4 -16 -7 -5 a 8,8 0 0 1 -8,-8 v -4 a 4,4 0 0 1 4,4 4,4 0 0 0 4,4 h 5 3 24 4 4 a 4,4 0 0 0 4,-4 4,4 0 0 1 4,-4 z" />
+    <path
+       style="fill:none;stroke:#2d61a3;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 72,172 8,-12 -8,-12"
+       id="path835" />
+    <path
+       style="fill:none;stroke:#dc9c19;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 112,172 8,-12 -8,-12"
+       id="path837" />
+    <g
+       id="g854"
+       transform="rotate(-90,160,160)"
+       inkscape:export-filename=".\conveyor-up.png"
+       inkscape:export-xdpi="384"
+       inkscape:export-ydpi="384">
+      <rect
+         style="fill:#c6dbe6;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         id="rect839"
+         width="64"
+         height="64"
+         x="-192"
+         y="128"
+         rx="12"
+         inkscape:export-filename="multiplicator.png"
+         inkscape:export-xdpi="384"
+         inkscape:export-ydpi="384"
+         transform="scale(-1,1)" />
+      <rect
+         style="fill:#ecf9fc;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         id="rect841"
+         width="56"
+         height="56"
+         x="-188"
+         y="132"
+         rx="8"
+         transform="scale(-1,1)" />
+      <path
+         id="path843"
+         style="fill:#9c8776;fill-opacity:1;stroke-width:4;stroke-linecap:round;stroke-linejoin:round"
+         d="m 180,132 a 8,8 0 0 1 8,8 v 4 a 4,4 0 0 1 -4,-4 4,4 0 0 0 -4,-4 h -40 a 4,4 0 0 0 -4,4 4,4 0 0 1 -4,4 v -4 a 8,8 0 0 1 8,-8 z m 8,44 v 4 a 8,8 0 0 1 -8,8 h -4 -4 -4 -16 -7 -5 a 8,8 0 0 1 -8,-8 v -4 a 4,4 0 0 1 4,4 4,4 0 0 0 4,4 h 5 3 24 4 4 a 4,4 0 0 0 4,-4 4,4 0 0 1 4,-4 z" />
+      <path
+         style="fill:none;stroke:#2d61a3;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         d="m 136,172 8,-12 -8,-12"
+         id="path845" />
+      <path
+         style="fill:none;stroke:#dc9c19;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         d="m 176,172 8,-12 -8,-12"
+         id="path847" />
+    </g>
+    <g
+       id="g866"
+       transform="matrix(0,1,1,0,64,0)"
+       inkscape:export-filename=".\conveyor-down.png"
+       inkscape:export-xdpi="384"
+       inkscape:export-ydpi="384">
+      <rect
+         style="fill:#c6dbe6;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         id="rect856"
+         width="64"
+         height="64"
+         x="-192"
+         y="128"
+         rx="12"
+         inkscape:export-filename="multiplicator.png"
+         inkscape:export-xdpi="384"
+         inkscape:export-ydpi="384"
+         transform="scale(-1,1)" />
+      <rect
+         style="fill:#ecf9fc;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         id="rect858"
+         width="56"
+         height="56"
+         x="-188"
+         y="132"
+         rx="8"
+         transform="scale(-1,1)" />
+      <path
+         id="path860"
+         style="fill:#9c8776;fill-opacity:1;stroke-width:4;stroke-linecap:round;stroke-linejoin:round"
+         d="m 180,132 a 8,8 0 0 1 8,8 v 4 a 4,4 0 0 1 -4,-4 4,4 0 0 0 -4,-4 h -40 a 4,4 0 0 0 -4,4 4,4 0 0 1 -4,4 v -4 a 8,8 0 0 1 8,-8 z m 8,44 v 4 a 8,8 0 0 1 -8,8 h -4 -4 -4 -16 -7 -5 a 8,8 0 0 1 -8,-8 v -4 a 4,4 0 0 1 4,4 4,4 0 0 0 4,4 h 5 3 24 4 4 a 4,4 0 0 0 4,-4 4,4 0 0 1 4,-4 z" />
+      <path
+         style="fill:none;stroke:#2d61a3;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         d="m 136,172 8,-12 -8,-12"
+         id="path862" />
+      <path
+         style="fill:none;stroke:#dc9c19;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         d="m 176,172 8,-12 -8,-12"
+         id="path864" />
+    </g>
   </g>
 </svg>

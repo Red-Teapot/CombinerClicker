@@ -12,7 +12,7 @@ const FADE_OUT_TIME: f32 = 0.2;
 
 pub fn startup_title(mut commands: Commands, game_assets: Res<GameAssets>) {
     commands.spawn_bundle(Text2dBundle {
-        text: Text::from_section("Combiner Clicker Something", TextStyle {
+        text: Text::from_section("One Clicker", TextStyle {
             font: game_assets.font.clone(),
             font_size: 64.0,
             color: palette::DARK_BLUE,

@@ -8,6 +8,10 @@ use crate::assets::GameAssets;
 pub enum Machine {
     Miner,
     Collector,
+    ConveyorUp,
+    ConveyorDown,
+    ConveyorLeft,
+    ConveyorRight,
     Adder,
     Multiplicator,
 }
@@ -16,7 +20,7 @@ impl Machine {
     pub fn list() -> &'static [Machine] {
         use crate::gameplay::components::Machine::*;
 
-        &[Miner, Collector, Adder, Multiplicator]
+        &[Miner, Collector, ConveyorUp, ConveyorDown, ConveyorLeft, ConveyorRight, Adder, Multiplicator]
     }
 
     pub fn cost(&self) -> usize {
@@ -25,6 +29,10 @@ impl Machine {
         match self {
             Miner => 20,
             Collector => 200,
+            ConveyorUp => 10,
+            ConveyorDown => 10,
+            ConveyorLeft => 10,
+            ConveyorRight => 10,
             Adder => 500,
             Multiplicator => 1000,
         }
@@ -36,6 +44,10 @@ impl Machine {
         match self {
             Miner => assets.miner.clone(),
             Collector => assets.collector.clone(),
+            ConveyorUp => assets.conveyor_up.clone(),
+            ConveyorDown => assets.conveyor_down.clone(),
+            ConveyorLeft => assets.conveyor_left.clone(),
+            ConveyorRight => assets.conveyor_right.clone(),
             Adder => assets.adder.clone(),
             Multiplicator => assets.multiplicator.clone(),
         }
@@ -47,6 +59,10 @@ impl Machine {
         match self {
             Miner => "Miner",
             Collector => "Collector",
+            ConveyorUp => "Up Conveyor",
+            ConveyorDown => "Down Conveyor",
+            ConveyorLeft => "Left Conveyor",
+            ConveyorRight => "Right Conveyor",
             Adder => "Adder",
             Multiplicator => "Multiplier",
         }
@@ -56,10 +72,14 @@ impl Machine {
         use crate::gameplay::components::Machine::*;
 
         match self {
-            Miner => Duration::from_secs_f32(5.0),
-            Collector => Duration::from_secs_f32(1.0),
-            Adder => Duration::from_secs_f32(5.0),
-            Multiplicator => Duration::from_secs_f32(5.0),
+            Miner => Duration::from_secs_f32(1.0),
+            Collector => Duration::from_secs_f32(0.1),
+            ConveyorUp => Duration::from_secs_f32(0.2),
+            ConveyorDown => Duration::from_secs_f32(0.2),
+            ConveyorLeft => Duration::from_secs_f32(0.2),
+            ConveyorRight => Duration::from_secs_f32(0.2),
+            Adder => Duration::from_secs_f32(1.0),
+            Multiplicator => Duration::from_secs_f32(1.0),
         }
     }
 }

@@ -1,5 +1,5 @@
 [package]
-name = "combiner-clicker"
+name = "one-clicker"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,7 +8,7 @@ crate-type = ["cdylib", "rlib"]
 path = "src/lib.rs"
 
 [[bin]]
-name = "combiner_clicker-desktop"
+name = "one_clicker-desktop"
 path = "src/desktop_main.rs"
 
 # Opinionated, aimed mostly at 2D games
