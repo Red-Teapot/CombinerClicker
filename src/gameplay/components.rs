@@ -1,3 +1,4 @@
+use std::time::Duration;
 use bevy::math::vec2;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -51,6 +52,17 @@ impl Machine {
             Multiplicator => "Multiplier",
         }
     }
+
+    pub fn action_period(&self) -> Duration {
+        use crate::gameplay::components::Machine::*;
+
+        match self {
+            Miner => Duration::from_secs_f32(5.0),
+            Collector => Duration::from_secs_f32(1.0),
+            Adder => Duration::from_secs_f32(5.0),
+            Multiplicator => Duration::from_secs_f32(5.0),
+        }
+    }
 }
 
 #[derive(Component, Inspectable, Default)]
@@ -81,11 +93,13 @@ pub struct Particle {
 pub struct Coin {
     pub spawn_timer: Timer,
     pub despawn_timer: Timer,
+    pub has_money: bool,
 }
 
 pub struct CoinPickup {
     pub coin: Entity,
     pub target: Vec2,
+    pub add_money: bool,
 }
 
 impl Coin {
@@ -206,4 +220,5 @@ pub struct Spot;
 #[derive(Component)]
 pub struct PlacedMachine {
     pub machine: Machine,
+    pub action_timer: Timer,
 }

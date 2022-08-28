@@ -353,12 +353,17 @@ pub fn move_particles(mut particles: Query<(&mut Transform, &mut Particle)>) {
     }
 }
 
-fn spawn_coin(commands: &mut Commands, assets: &Res<GameAssets>, value: usize, position: Vec2, velocity: Vec2, damping: f32) {
+fn spawn_coin(commands: &mut Commands,
+              assets: &Res<GameAssets>,
+              value: usize,
+              position: Vec2,
+              velocity: Vec2,
+              damping: f32) {
     let font_size = 180.0 / ((value as f32).log10().floor() + 1.0).powf(0.75);
 
     commands.spawn_bundle(SpriteBundle {
         texture: assets.coin.clone(),
-        transform: Transform::from_translation(position.extend(0.0))
+        transform: Transform::from_translation(position.extend(0.2))
             .with_scale(Vec3::splat(0.0)),
         ..default()
     }).with_children(|coin| {
@@ -393,6 +398,7 @@ fn spawn_coin(commands: &mut Commands, assets: &Res<GameAssets>, value: usize, p
                 timer.pause();
                 timer
             },
+            has_money: true,
         })
         .insert(TileTrackedEntity);
 }
@@ -430,6 +436,7 @@ pub fn update_coins(mut commands: Commands,
 
         coin.despawn_timer.set_duration(Duration::from_secs_f32(DESPAWN_DURATION));
         coin.despawn_timer.unpause();
+        coin.has_money = event.add_money;
 
         commands.entity(event.coin)
             .insert(Animator::new(Tracks::new([
@@ -459,7 +466,10 @@ pub fn update_coins(mut commands: Commands,
         coin.despawn_timer.tick(time.delta());
 
         if coin.despawn_timer.just_finished() {
-            money.0 += coin_money.0;
+            if coin.has_money {
+                money.0 += coin_money.0.pow(2);
+            }
+
             commands.entity(entity).despawn_recursive();
         }
     }
@@ -493,6 +503,7 @@ pub fn hover_coins(mut coins: Query<(&Transform, &Coin), Without<BuildingGhost>>
                                     coin_pickup_events.send(CoinPickup {
                                         coin: entity,
                                         target: *position,
+                                        add_money: true,
                                     });
                                 }
                             }
@@ -825,7 +836,7 @@ pub fn place_ghosts(mut commands: Commands,
         return;
     }
 
-    for (entity, transform, mut sprite, ghost) in ghosts.iter_mut() {
+    for (entity, mut transform, mut sprite, ghost) in ghosts.iter_mut() {
         match ghost {
             BuildingGhost::Spot { .. } => {
                 let tile = TilePosition::from_world(transform.translation.truncate());
@@ -850,6 +861,7 @@ pub fn place_ghosts(mut commands: Commands,
                         .remove::<BuildingGhost>()
                         .insert(Spot)
                         .insert(TileTrackedEntity);
+                    transform.translation.z = 0.0;
                 }
             }
 
@@ -859,8 +871,112 @@ pub fn place_ghosts(mut commands: Commands,
                     .remove::<BuildingGhost>()
                     .insert(PlacedMachine {
                         machine: *machine,
+                        action_timer: Timer::new(machine.action_period(), true),
                     })
                     .insert(TileTrackedEntity);
+                transform.translation.z = 0.0;
+            }
+        }
+    }
+}
+
+pub fn act_machines(mut commands: Commands,
+                    assets: Res<GameAssets>,
+                    mut machines: Query<(&Transform, &mut PlacedMachine)>,
+                    mut coins: Query<(&Coin, &Money), Without<PlacedMachine>>,
+                    tile_tracked_entities: Res<TileTrackedEntities>,
+                    time: Res<Time>,
+                    mut coin_pickups: EventWriter<CoinPickup>) {
+    let find_coin = |tile_pos: TilePosition| -> Option<(Entity, &Coin, &Money)> {
+        if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile_pos) {
+            for &entity in entities {
+                if let Ok((coin, money)) = coins.get(entity) {
+                    return Some((entity, coin, money));
+                }
+            }
+
+            return None;
+        }
+
+        return None;
+    };
+
+    let mut spew_coin = |position: Vec2, value: usize, angle: f32| {
+        let spread = PI / 4.0;
+        let speed = 80.0 + 30.0 * rand::random::<f32>();
+        let velocity = Vec2::from_angle(rand::random::<f32>() * spread - spread / 2.0 + angle) * speed;
+        spawn_coin(&mut commands, &assets, value, position, velocity, 0.6);
+    };
+
+    for (transform, mut placed_machine) in machines.iter_mut() {
+        placed_machine.action_timer.tick(time.delta());
+
+        if placed_machine.action_timer.just_finished() {
+            let position = transform.translation.truncate();
+            let tile_pos = TilePosition::from_world(position);
+
+            match placed_machine.machine {
+                Machine::Miner => {
+                    spew_coin(position, 1, -PI / 2.0);
+                }
+
+                Machine::Collector => {
+                    if let Some((entity, coin, _)) = find_coin(tile_pos.offset(0, 1)) {
+                        coin_pickups.send(CoinPickup {
+                            coin: entity,
+                            target: position,
+                            add_money: true,
+                        });
+                    }
+                }
+
+                Machine::Adder => {
+                    let mut coin_left = find_coin(tile_pos.offset(-1, 0));
+                    let mut coin_right = find_coin(tile_pos.offset(1, 0));
+
+                    match (coin_left, coin_right) {
+                        (Some((entity_left, coin_left, money_left)), Some((entity_right, coin_right, money_right))) => {
+                            coin_pickups.send(CoinPickup {
+                                coin: entity_left,
+                                target: position,
+                                add_money: false,
+                            });
+                            coin_pickups.send(CoinPickup {
+                                coin: entity_right,
+                                target: position,
+                                add_money: false,
+                            });
+
+                            spew_coin(position, money_left.0 + money_right.0, -PI / 2.0);
+                        }
+
+                        _ => ()
+                    }
+                }
+
+                Machine::Multiplicator => {
+                    let mut coin_left = find_coin(tile_pos.offset(-1, 0));
+                    let mut coin_right = find_coin(tile_pos.offset(1, 0));
+
+                    match (coin_left, coin_right) {
+                        (Some((entity_left, coin_left, money_left)), Some((entity_right, coin_right, money_right))) => {
+                            coin_pickups.send(CoinPickup {
+                                coin: entity_left,
+                                target: position,
+                                add_money: false,
+                            });
+                            coin_pickups.send(CoinPickup {
+                                coin: entity_right,
+                                target: position,
+                                add_money: false,
+                            });
+
+                            spew_coin(position, money_left.0 * money_right.0, -PI / 2.0);
+                        }
+
+                        _ => ()
+                    }
+                }
             }
         }
     }
