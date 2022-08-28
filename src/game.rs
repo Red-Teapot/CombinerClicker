@@ -1,13 +1,14 @@
 use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::prelude::Val::Percent;
+use bevy_inspector_egui::InspectorPlugin;
 use bevy_kira_audio::AudioPlugin;
 use bevy_ninepatch::NinePatchPlugin;
 use bevy_tweening::TweeningPlugin;
 use iyes_loopless::prelude::*;
 use crate::assets::GameAssets;
 use crate::{assets, gameplay, palette, title};
-use crate::gameplay::components::{CoinPickup, WorldMouseEvent};
+use crate::gameplay::components::{CoinPickup, Money, WorldMouseEvent};
 
 pub fn run(app: &mut App) {
     app.insert_resource(WindowDescriptor {
@@ -18,7 +19,8 @@ pub fn run(app: &mut App) {
     .add_plugin(AudioPlugin)
     .add_plugin(NinePatchPlugin::<()>::default())
     .add_plugin(TweeningPlugin)
-    .add_plugin(GamePlugin);
+    .add_plugin(GamePlugin)
+    .add_plugin(InspectorPlugin::<Money>::new());
 
     #[cfg(all(target_os = "windows", debug_assertions))]
     {
@@ -58,6 +60,7 @@ impl Plugin for GamePlugin {
                 .with_system(gameplay::systems::hover_coins)
                 .with_system(gameplay::systems::update_coins)
                 .with_system(gameplay::systems::move_particles)
+                .with_system(gameplay::systems::update_money)
                 .into());
     }
 }

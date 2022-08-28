@@ -495,3 +495,30 @@ pub fn hover_coins(mut coins: Query<(&Transform, &Coin)>,
         }
     }
 }
+
+pub fn update_money(money_res: Res<Money>,
+                    assets: Res<GameAssets>,
+                    mut money_display: Query<&mut Text, With<MoneyDisplay>>,
+                    mut machine_names: Query<(&mut Text, &MachineName), Without<MoneyDisplay>>,
+                    mut machine_icons: Query<(&mut UiImage, &MachineIcon)>) {
+    if !money_res.is_changed() {
+        return;
+    }
+
+    let mut text = money_display.single_mut();
+    text.sections[0].value = money_res.0.to_string();
+
+    for (mut text, MachineName(machine)) in machine_names.iter_mut() {
+        if money_res.0 >= machine.cost() {
+            text.sections[0].value = machine.name().to_string();
+        }
+    }
+
+    for (mut image, MachineIcon(machine)) in machine_icons.iter_mut() {
+        if money_res.0 >= machine.cost() {
+            image.0 = machine.image(&assets);
+        } else {
+            image.0 = assets.locked.clone();
+        }
+    }
+}
