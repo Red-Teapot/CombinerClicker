@@ -1,7 +1,6 @@
 use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::prelude::Val::Percent;
-use bevy_inspector_egui::InspectorPlugin;
 use bevy_kira_audio::AudioPlugin;
 use bevy_ninepatch::NinePatchPlugin;
 use bevy_tweening::TweeningPlugin;
@@ -19,8 +18,7 @@ pub fn run(app: &mut App) {
     .add_plugin(AudioPlugin)
     .add_plugin(NinePatchPlugin::<()>::default())
     .add_plugin(TweeningPlugin)
-    .add_plugin(GamePlugin)
-    .add_plugin(InspectorPlugin::<Money>::new());
+    .add_plugin(GamePlugin);
 
     #[cfg(all(target_os = "windows", debug_assertions))]
     {

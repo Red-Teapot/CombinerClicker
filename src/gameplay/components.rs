@@ -2,7 +2,6 @@ use std::time::Duration;
 use bevy::math::vec2;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use bevy_inspector_egui::Inspectable;
 use crate::assets::GameAssets;
 
 #[derive(Component, Copy, Clone)]
@@ -65,7 +64,7 @@ impl Machine {
     }
 }
 
-#[derive(Component, Inspectable, Default)]
+#[derive(Component)]
 pub struct Money(pub usize);
 
 #[derive(Component)]
