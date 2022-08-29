@@ -45,7 +45,7 @@ pub fn startup_title(mut commands: Commands, game_assets: Res<GameAssets>) {
     ))).insert(TitleHint);
 
     commands.spawn_bundle(Text2dBundle {
-        text: Text::from_section("Game by RedTeapot\nMade for BevyJam #2", TextStyle {
+        text: Text::from_section("Game by RedTeapot\nMade for Bevy Jam #2", TextStyle {
             font: game_assets.font.clone(),
             font_size: 32.0,
             color: palette::LIGHT_BROWN,
