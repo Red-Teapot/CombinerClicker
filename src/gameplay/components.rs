@@ -23,7 +23,7 @@ impl Machine {
         &[Miner, Collector, ConveyorUp, ConveyorDown, ConveyorLeft, ConveyorRight, Adder, Multiplicator]
     }
 
-    pub fn cost(&self) -> usize {
+    pub fn cost(&self) -> u64 {
         use crate::gameplay::components::Machine::*;
 
         match self {
@@ -85,7 +85,7 @@ impl Machine {
 }
 
 #[derive(Component)]
-pub struct Money(pub usize);
+pub struct Money(pub u64);
 
 #[derive(Component)]
 pub struct MoneyDisplay;

@@ -11,7 +11,7 @@ use crate::gameplay::components::{CoinPickup, Money, WorldMouseEvent};
 
 pub fn run(app: &mut App) {
     app.insert_resource(WindowDescriptor {
-        title: "Combiner Clicker".to_string(),
+        title: "One Clicker".to_string(),
         ..Default::default()
     })
     .add_plugins(DefaultPlugins)

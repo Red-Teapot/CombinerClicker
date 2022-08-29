@@ -363,7 +363,7 @@ pub fn move_particles(mut particles: Query<(&mut Transform, &mut Particle)>) {
 
 fn spawn_coin(commands: &mut Commands,
               assets: &Res<GameAssets>,
-              value: usize,
+              value: u64,
               position: Vec2,
               velocity: Vec2,
               damping: f32) {
@@ -1039,7 +1039,7 @@ pub fn act_machines(mut commands: Commands,
         return None;
     };
 
-    let mut spew_coin = |position: Vec2, value: usize, angle: f32| {
+    let mut spew_coin = |position: Vec2, value: u64, angle: f32| {
         let spread = PI / 4.0;
         let speed = 80.0 + 30.0 * rand::random::<f32>();
         let velocity = Vec2::from_angle(rand::random::<f32>() * spread - spread / 2.0 + angle) * speed;
