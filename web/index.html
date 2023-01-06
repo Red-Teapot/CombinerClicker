@@ -43,9 +43,49 @@
     </style>
 </head>
 <body>
-    <script type="module">
+<script>
+        // Enable audio on first user interaction
+        const audioContextList = [];
+
+        const userInputEventNames = [
+            'click', 'contextmenu', 'auxclick', 'dblclick', 'mousedown',
+            'mouseup', 'pointerup', 'touchend', 'keydown', 'keyup'];
+
+        self.AudioContext = new Proxy(self.AudioContext, {
+            construct(target, args) {
+                const result = new target(...args);
+                audioContextList.push(result);
+                return result;
+            },
+        });
+
+        function resumeAllContexts(event) {
+            let count = 0;
+
+            audioContextList.forEach(context => {
+                if (context.state !== 'running') {
+                    context.resume();
+                } else {
+                    count++;
+                }
+            });
+
+            if (count == audioContextList.length) {
+                userInputEventNames.forEach(eventName => {
+                    document.removeEventListener(eventName, resumeAllContexts);
+                });
+            }
+        }
+
+        userInputEventNames.forEach(eventName => {
+            document.addEventListener(eventName, resumeAllContexts);
+        });
+
+        // Don't show context menu
         document.addEventListener('contextmenu', event => event.preventDefault());
-        
+    </script>
+
+    <script type="module">
         import init from "./<!<!PROJECT_NAME!>!>.js";
 
         async function load(wasmPath) {

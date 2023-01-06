@@ -15,6 +15,7 @@ pub fn web_main() {
     crate::run(&mut app);
 }
 
+#[derive(Resource)]
 struct CanvasResize {
     #[allow(dead_code)]
     listener: EventListener,

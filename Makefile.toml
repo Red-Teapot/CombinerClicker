@@ -1,15 +1,38 @@
-env_files = [ './butler.env' ]
-
 [env]
-PROJECT_NAME = 'one_clicker'
+PROJECT_NAME = '${CARGO_MAKE_CRATE_FS_NAME}'
 WINDOWS_TARGET = 'x86_64-pc-windows-msvc'
+WINDOWS_EXE_NAME = '${PROJECT_NAME}-windows.exe' # Should match whatever is set in Cargo.toml
+
 
 [tasks.prepare-release-dir]
+condition = { env_set = ['PLATFORM'] }
 script_runner = '@duckscript'
 script = '''
-rm -r release
-mkdir release/web
-mkdir release/windows
+rm -r release/${PLATFORM}
+mkdir release/${PLATFORM}
+'''
+
+[tasks.collect-assets]
+condition = { env_set = ['PLATFORM'] }
+script_runner = '@duckscript'
+script = '''
+assets = array
+
+pngs = glob_array assets/**/*.png
+assets = array_concat ${assets} ${pngs}
+
+wavs = glob_array assets/**/*.wav
+assets = array_concat ${assets} ${wavs}
+
+oggs = glob_array assets/**/*.ogg
+assets = array_concat ${assets} ${oggs}
+
+ttfs = glob_array assets/**/*.ttf
+assets = array_concat ${assets} ${ttfs}
+
+for path in ${assets}
+    cp ${path} release/${PLATFORM}/${path}
+end
 '''
 
 [tasks.zip-platform]
@@ -89,14 +112,22 @@ where
 }
 '''
 
+[tasks.prepare-release-dir-web]
+env = { 'PLATFORM' = 'web' }
+run_task = 'prepare-release-dir'
+
 [tasks.compile-web]
 command = 'wasm-pack'
 args = ['build', '--target', 'web']
 install_crate = { crate_name = 'wasm-pack', test_arg = '--help' }
 
+[tasks.collect-assets-web]
+env = { 'PLATFORM' = 'web' }
+run_task = 'collect-assets'
+
 [tasks.distrib-web]
 env = { 'PLATFORM' = 'web' }
-dependencies = ['prepare-release-dir', 'compile-web']
+dependencies = ['prepare-release-dir-web', 'compile-web', 'collect-assets-web']
 script_runner = '@duckscript'
 script = '''
 cp pkg/${PROJECT_NAME}_bg.wasm release/${PLATFORM}/${PROJECT_NAME}.wasm
@@ -124,16 +155,24 @@ script = '''
 exec ${BUTLER_EXE} push release/web ${ITCH_USER}/${ITCH_GAME}:web
 '''
 
+[tasks.prepare-release-dir-windows]
+env = { 'PLATFORM' = 'windows' }
+run_task = 'prepare-release-dir'
+
 [tasks.compile-windows]
 command = 'cargo'
 args = ['build', '--release', '--target', '${WINDOWS_TARGET}']
 
+[tasks.collect-assets-windows]
+env = { 'PLATFORM' = 'windows' }
+run_task = 'collect-assets'
+
 [tasks.distrib-windows]
 env = { 'PLATFORM' = 'windows' }
-dependencies = ['prepare-release-dir', 'compile-windows']
+dependencies = ['prepare-release-dir-windows', 'compile-windows', 'collect-assets-windows']
 script_runner = '@duckscript'
 script = '''
-cp target/${WINDOWS_TARGET}/release/${PROJECT_NAME}-desktop.exe release/${PLATFORM}/${PROJECT_NAME}-desktop.exe
+cp target/${WINDOWS_TARGET}/release/${WINDOWS_EXE_NAME} release/${PLATFORM}/${WINDOWS_EXE_NAME}
 '''
 
 [tasks.zip-windows]
@@ -150,12 +189,16 @@ script = '''
 exec ${BUTLER_EXE} push release/windows ${ITCH_USER}/${ITCH_GAME}:windows
 '''
 
+[tasks.distrib]
+description = 'Builds Web and Windows versions and places them into the release directory'
+run_task = { name = ['distrib-web', 'distrib-windows'] }
+
 [tasks.zip]
-description = ''
-dependencies = ['zip-web', 'zip-windows']
+description = 'Creates a ZIP archive containing both Web and Windows builds'
+run_task = { name = ['zip-web', 'zip-windows'] }
 
 [tasks.publish]
+env_files = [ './butler.env' ]
 description = 'Publishes both Web and Windows builds of the game on Itch.io using Butler'
 clear = true
-condition = { env_set = ['BUTLER_EXE'] }
-dependencies = ['publish-web', 'publish-windows']
+run_task = { name = ['publish-web', 'publish-windows'] }

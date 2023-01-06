@@ -23,7 +23,7 @@ impl Machine {
         &[Miner, Collector, ConveyorUp, ConveyorDown, ConveyorLeft, ConveyorRight, Adder, Multiplicator]
     }
 
-    pub fn cost(&self) -> u64 {
+    pub fn cost(&self) -> u128 {
         use crate::gameplay::components::Machine::*;
 
         match self {
@@ -84,8 +84,8 @@ impl Machine {
     }
 }
 
-#[derive(Component)]
-pub struct Money(pub u64);
+#[derive(Component, Resource)]
+pub struct Money(pub u128);
 
 #[derive(Component)]
 pub struct MoneyDisplay;
@@ -127,7 +127,7 @@ impl Coin {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Resource)]
 pub enum WorldMouseState {
     None,
     Pressed {
@@ -193,6 +193,7 @@ impl TilePosition {
     }
 }
 
+#[derive(Resource)]
 pub struct TileTrackedEntities {
     map: HashMap<TilePosition, Vec<Entity>>,
 }

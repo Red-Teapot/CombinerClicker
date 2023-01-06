@@ -2,7 +2,7 @@ use std::time::Duration;
 use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::ui::Val::Percent;
-use bevy_tweening::{Animator, EaseFunction, Tween, TweeningType};
+use bevy_tweening::{Animator, EaseFunction, RepeatCount, RepeatStrategy, Tween};
 use bevy_tweening::lens::{TextColorLens, TransformPositionLens};
 use iyes_loopless::prelude::*;
 use crate::assets::*;
@@ -11,7 +11,7 @@ use crate::{BackgroundInteraction, GameState, palette};
 const FADE_OUT_TIME: f32 = 0.2;
 
 pub fn startup_title(mut commands: Commands, game_assets: Res<GameAssets>) {
-    commands.spawn_bundle(Text2dBundle {
+    commands.spawn(Text2dBundle {
         text: Text::from_section("One Clicker", TextStyle {
             font: game_assets.font.clone(),
             font_size: 64.0,
@@ -24,7 +24,7 @@ pub fn startup_title(mut commands: Commands, game_assets: Res<GameAssets>) {
         ..default()
     }).insert(TitleHint);
 
-    commands.spawn_bundle(Text2dBundle {
+    commands.spawn(Text2dBundle {
         text: Text::from_section("Click to start", TextStyle {
             font: game_assets.font.clone(),
             font_size: 48.0,
@@ -36,15 +36,15 @@ pub fn startup_title(mut commands: Commands, game_assets: Res<GameAssets>) {
         ..default()
     }).insert(Animator::new(Tween::new(
         EaseFunction::QuadraticInOut,
-        TweeningType::PingPong,
         Duration::from_secs(1),
         TransformPositionLens {
             start: vec3(0.0, -10.0, 0.0),
             end: vec3(0.0, 10.0, 0.0),
         }
-    ))).insert(TitleHint);
+    ).with_repeat_strategy(RepeatStrategy::MirroredRepeat).with_repeat_count(RepeatCount::Infinite)))
+        .insert(TitleHint);
 
-    commands.spawn_bundle(Text2dBundle {
+    commands.spawn(Text2dBundle {
         text: Text::from_section("Game by RedTeapot\nMade for Bevy Jam #2", TextStyle {
             font: game_assets.font.clone(),
             font_size: 32.0,
@@ -69,7 +69,7 @@ pub fn handle_title_click(mut commands: Commands,
                 let fade_out_time = Duration::from_secs_f32(FADE_OUT_TIME);
 
                 commands.insert_resource(TitleFadeOut {
-                    timer: Timer::new(fade_out_time, false),
+                    timer: Timer::new(fade_out_time, TimerMode::Once),
                 });
                 for (hint, transform, text) in hints.iter() {
                     let mut hint_commands = commands.entity(hint);
@@ -83,7 +83,6 @@ pub fn handle_title_click(mut commands: Commands,
                         .remove::<Animator<Text>>()
                         .insert(Animator::new(Tween::new(
                             EaseFunction::CubicOut,
-                            TweeningType::Once,
                             fade_out_time,
                             TransformPositionLens {
                                 start: start_position,
@@ -92,7 +91,6 @@ pub fn handle_title_click(mut commands: Commands,
                         )))
                         .insert(Animator::new(Tween::new(
                             EaseFunction::CubicOut,
-                            TweeningType::Once,
                             fade_out_time,
                             TextColorLens {
                                 start: start_color,
@@ -131,6 +129,7 @@ pub fn handle_title_click(mut commands: Commands,
 #[derive(Component)]
 pub struct TitleHint;
 
+#[derive(Resource)]
 pub struct TitleFadeOut {
     timer: Timer,
 }

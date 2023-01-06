@@ -1,26 +1,21 @@
 [package]
 name = "one-clicker"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-path = "src/lib.rs"
+path = "src/game.rs"
 
 [[bin]]
-name = "one_clicker-desktop"
+name = "one_clicker-windows"
 path = "src/desktop_main.rs"
-
-# Opinionated, aimed mostly at 2D games
 
 # Audio formats should be enabled only in bevy_kira_audio
 [dependencies.bevy]
-version = "0.8"
+version = "0.9"
 default-features = false
 features = [
-    "bevy_asset",
-    "bevy_scene",
-    "bevy_ui",
     "render",
     "bevy_winit",
     "png",
@@ -30,21 +25,19 @@ features = [
 
 # Apparently this is better than built-in Bevy audio system
 [dependencies.bevy_kira_audio]
-version = "0.12"
+version = "0.13"
 default-features = false
 features = ["ogg", "wav"]
 
 [dependencies]
 rand = "0.8"
-bevy_tweening = "0.5"
-bevy_ninepatch = "0.8"
-iyes_loopless = "0.7"
-
-wasm-bindgen = "0.2"
+bevy_tweening = "0.6"
+bevy_ninepatch = "0.9"
+iyes_loopless = "0.9"
 
 # Native dependencies
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-bevy-inspector-egui = "0.12"
+bevy-inspector-egui = "0.16"
 
 # Wasm dependencies
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -53,6 +46,7 @@ console_error_panic_hook = "0.1"
 # Used for resizing the canvas to fit the window
 web-sys = { version = "0.3", features = ["Window"] }
 gloo-events = "0.1"
+wasm-bindgen = "0.2"
 
 [profile.dev.package."*"]
 # Compile all dependencies as release for extra fast

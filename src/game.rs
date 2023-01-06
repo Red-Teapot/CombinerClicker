@@ -1,3 +1,11 @@
+#[cfg(target_arch = "wasm32")]
+mod web_main;
+
+pub mod palette;
+pub mod assets;
+pub mod title;
+pub mod gameplay;
+
 use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::prelude::Val::Percent;
@@ -6,15 +14,16 @@ use bevy_ninepatch::NinePatchPlugin;
 use bevy_tweening::TweeningPlugin;
 use iyes_loopless::prelude::*;
 use crate::assets::GameAssets;
-use crate::{assets, gameplay, palette, title};
 use crate::gameplay::components::{CoinPickup, Money, WorldMouseEvent};
 
 pub fn run(app: &mut App) {
-    app.insert_resource(WindowDescriptor {
-        title: "One Clicker".to_string(),
-        ..Default::default()
-    })
-    .add_plugins(DefaultPlugins)
+    app.add_plugins(DefaultPlugins.set(WindowPlugin {
+        window: WindowDescriptor {
+            title: "One Clicker".to_string(),
+            ..default()
+        },
+        ..default()
+    }))
     .add_plugin(AudioPlugin)
     .add_plugin(NinePatchPlugin::<()>::default())
     .add_plugin(TweeningPlugin)
@@ -22,7 +31,7 @@ pub fn run(app: &mut App) {
 
     #[cfg(all(target_os = "windows", debug_assertions))]
     {
-        app.add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new());
+        app.add_plugin(bevy_inspector_egui::quick::WorldInspectorPlugin);
     };
 
     app.run();
@@ -82,17 +91,17 @@ enum GameSystemLabel {
 }
 
 pub fn startup_game(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle {
+    commands.spawn(Camera2dBundle {
         ..default()
     });
 
-    commands.spawn_bundle(ButtonBundle {
+    commands.spawn(ButtonBundle {
         style: Style {
             position_type: PositionType::Absolute,
             size: Size::new(Percent(100.0), Percent(100.0)),
             ..default()
         },
-        color: Color::NONE.into(),
+        background_color: Color::NONE.into(),
         ..default()
     }).insert(BackgroundInteraction);
 }

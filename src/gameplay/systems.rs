@@ -27,36 +27,34 @@ pub fn startup_gameplay(mut commands: Commands,
 
     commands.insert_resource(TileTrackedEntities::new());
 
-    commands.spawn_bundle(NodeBundle {
+    commands.spawn(NodeBundle {
         style: Style {
             size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
             align_items: AlignItems::Stretch,
             justify_content: JustifyContent::SpaceBetween,
-            flex_direction: FlexDirection::ColumnReverse,
+            flex_direction: FlexDirection::Column,
             ..default()
         },
-        color: Color::NONE.into(),
+        focus_policy: FocusPolicy::Pass,
         ..default()
     }).with_children(|window| {
-        window.spawn_bundle(NodeBundle {
+        window.spawn(NodeBundle {
             style: Style {
-                align_items: AlignItems::FlexStart,
+                align_items: AlignItems::FlexEnd,
                 ..default()
             },
-            color: Color::NONE.into(),
             focus_policy: FocusPolicy::Pass,
             ..default()
         }).with_children(|top_panel| {
-            top_panel.spawn_bundle(NodeBundle {
+            top_panel.spawn(NodeBundle {
                 style: Style {
                     flex_direction: FlexDirection::Row,
                     padding: UiRect::all(Px(8.0)),
                     ..default()
                 },
-                color: Color::NONE.into(),
                 ..default()
             }).with_children(|money_display| {
-                money_display.spawn_bundle(ImageBundle {
+                money_display.spawn(ImageBundle {
                     image: assets.coin.clone().into(),
                     style: Style {
                         size: Size::new(Px(48.0), Px(48.0)),
@@ -66,7 +64,7 @@ pub fn startup_gameplay(mut commands: Commands,
                     },
                     ..default()
                 }).with_children(|coin| {
-                    coin.spawn_bundle(TextBundle {
+                    coin.spawn(TextBundle {
                         text: Text::from_section("1", TextStyle {
                             font: assets.font.clone(),
                             color: palette::DARK_BLUE,
@@ -76,7 +74,7 @@ pub fn startup_gameplay(mut commands: Commands,
                     });
                 }).insert(Name::new("Icon"));
 
-                money_display.spawn_bundle(TextBundle {
+                money_display.spawn(TextBundle {
                     text: Text::from_section("0", TextStyle {
                         font: assets.font.clone(),
                         color: palette::DARK_BLUE,
@@ -94,9 +92,9 @@ pub fn startup_gameplay(mut commands: Commands,
             }).insert(Name::new("Money Display"));
         }).insert(Name::new("Top Panel"));
 
-        let bottom_panel_content = window.spawn_bundle(NodeBundle {
+        let bottom_panel_content = window.spawn(NodeBundle {
             style: Style {
-                align_items: AlignItems::FlexEnd,
+                align_items: AlignItems::FlexStart,
                 justify_content: JustifyContent::Center,
                 min_size: Size {
                     height: Px(192.0),
@@ -106,21 +104,20 @@ pub fn startup_gameplay(mut commands: Commands,
                 ..default()
             },
             focus_policy: FocusPolicy::Pass,
-            color: Color::NONE.into(),
             ..default()
         }).with_children(|bottom_panel| {
             for machine in Machine::list() {
-                bottom_panel.spawn_bundle(ButtonBundle {
+                bottom_panel.spawn(ButtonBundle {
                     style: Style {
-                        flex_direction: FlexDirection::ColumnReverse,
+                        flex_direction: FlexDirection::Column,
                         padding: UiRect::all(Px(8.0)),
                         align_items: AlignItems::Center,
                         ..default()
                     },
-                    color: Color::NONE.into(),
+                    background_color: Color::NONE.into(),
                     ..default()
                 }).with_children(|container| {
-                    container.spawn_bundle(TextBundle {
+                    container.spawn(TextBundle {
                         text: Text::from_section("???", TextStyle {
                             font: assets.font.clone(),
                             color: palette::LIGHT_BROWN,
@@ -137,7 +134,7 @@ pub fn startup_gameplay(mut commands: Commands,
                         ..default()
                     }).insert(MachineName(*machine));
 
-                    container.spawn_bundle(ImageBundle {
+                    container.spawn(ImageBundle {
                         image: assets.locked.clone().into(),
                         style: Style {
                             size: Size::new(Px(64.0), Px(64.0)),
@@ -147,7 +144,7 @@ pub fn startup_gameplay(mut commands: Commands,
                         ..default()
                     }).insert(MachineIcon(*machine));
 
-                    container.spawn_bundle(TextBundle {
+                    container.spawn(TextBundle {
                         text: Text::from_section(machine.cost().to_string(), TextStyle {
                             font: assets.font.clone(),
                             color: palette::DARK_BLUE,
@@ -163,7 +160,7 @@ pub fn startup_gameplay(mut commands: Commands,
             }
         }).insert(Name::new("Bottom Panel Content")).id();
 
-        window.spawn_bundle(NinePatchBundle {
+        window.spawn(NinePatchBundle {
             nine_patch_data: NinePatchData::with_single_content(
                 assets.panel.0.clone(),
                 assets.panel.1.clone(),
@@ -236,7 +233,7 @@ pub fn handle_bg_input(mut world_mouse_state: ResMut<WorldMouseState>,
         match interaction {
             Interaction::Clicked => if buttons.just_pressed(MouseButton::Left) {
                 *world_mouse_state = WorldMouseState::Pressed {
-                    time: time.seconds_since_startup(),
+                    time: time.elapsed_seconds_f64(),
                     position_window: cursor_position_window,
                     position_world: cursor_position_world,
                 };
@@ -267,7 +264,7 @@ pub fn handle_bg_input(mut world_mouse_state: ResMut<WorldMouseState>,
     let convert_drag_offset = |offset: Vec2| -> Vec2 {
         let transform = camera_global_transform.compute_transform().with_translation(Vec3::ZERO);
 
-        transform.mul_vec3(offset.extend(0.0)).truncate()
+        transform.transform_point(offset.extend(0.0)).truncate()
     };
 
     match (buttons.just_released(MouseButton::Left), *world_mouse_state) {
@@ -290,7 +287,7 @@ pub fn handle_bg_input(mut world_mouse_state: ResMut<WorldMouseState>,
         }
 
         (released, WorldMouseState::Pressed { time: press_time, position_world, position_window }) => {
-            let press_duration = time.seconds_since_startup() - press_time;
+            let press_duration = time.elapsed_seconds_f64() - press_time;
             let press_distance = cursor_position_window.distance(position_window);
             let suitable_for_click = press_duration < CLICK_DURATION && press_distance < CLICK_DISTANCE;
 
@@ -363,19 +360,19 @@ pub fn move_particles(mut particles: Query<(&mut Transform, &mut Particle)>) {
 
 fn spawn_coin(commands: &mut Commands,
               assets: &Res<GameAssets>,
-              value: u64,
+              value: u128,
               position: Vec2,
               velocity: Vec2,
               damping: f32) {
     let font_size = 180.0 / ((value as f32).log10().floor() + 1.0).powf(0.75);
 
-    commands.spawn_bundle(SpriteBundle {
+    commands.spawn(SpriteBundle {
         texture: assets.coin.clone(),
         transform: Transform::from_translation(position.extend(0.2))
             .with_scale(Vec3::splat(0.0)),
         ..default()
     }).with_children(|coin| {
-        coin.spawn_bundle(Text2dBundle {
+        coin.spawn(Text2dBundle {
             text: Text::from_section(value.to_string(), TextStyle {
                 font: assets.font.clone(),
                 color: palette::DARK_BLUE,
@@ -392,7 +389,6 @@ fn spawn_coin(commands: &mut Commands,
         .insert(Money(value))
         .insert(Animator::new(Tween::new(
             EaseFunction::CubicOut,
-            TweeningType::Once,
             Duration::from_secs_f32(0.2),
             TransformScaleLens {
                 start: Vec3::splat(0.0),
@@ -400,9 +396,9 @@ fn spawn_coin(commands: &mut Commands,
             }
         )))
         .insert(Coin {
-            spawn_timer: Timer::from_seconds(0.2, false),
+            spawn_timer: Timer::from_seconds(0.2, TimerMode::Once),
             despawn_timer: {
-                let mut timer = Timer::from_seconds(0.1, false);
+                let mut timer = Timer::from_seconds(0.1, TimerMode::Once);
                 timer.pause();
                 timer
             },
@@ -456,7 +452,6 @@ pub fn update_coins(mut commands: Commands,
             .insert(Animator::new(Tracks::new([
                 Tween::new(
                     EaseFunction::CubicIn,
-                    TweeningType::Once,
                     Duration::from_secs_f32(DESPAWN_DURATION),
                     TransformScaleLens {
                         start: Vec3::splat(1.0),
@@ -465,7 +460,6 @@ pub fn update_coins(mut commands: Commands,
                 ),
                 Tween::new(
                     EaseFunction::CubicIn,
-                    TweeningType::Once,
                     Duration::from_secs_f32(DESPAWN_DURATION),
                     TransformPositionLens {
                         start: transform.translation,
@@ -481,7 +475,7 @@ pub fn update_coins(mut commands: Commands,
 
         if coin.despawn_timer.just_finished() {
             if coin.has_money {
-                money.0 += coin_money.0.pow(2);
+                money.0 += coin_money.0;
             }
 
             commands.entity(entity).despawn_recursive();
@@ -583,7 +577,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
 
                 match button.machine {
                     Machine::Miner => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.miner.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -593,7 +587,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Machine(Machine::Miner));
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -605,7 +599,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                     }
 
                     Machine::Collector => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.collector.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -615,7 +609,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Machine(Machine::Collector));
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -627,7 +621,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                     }
 
                     Machine::ConveyorUp => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.conveyor_up.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -637,7 +631,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Machine(Machine::ConveyorUp));
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -647,7 +641,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -659,7 +653,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                     }
 
                     Machine::ConveyorDown => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.conveyor_down.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -669,7 +663,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Machine(Machine::ConveyorDown));
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -679,7 +673,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -691,7 +685,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                     }
 
                     Machine::ConveyorLeft => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.conveyor_left.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -701,7 +695,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Machine(Machine::ConveyorLeft));
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -711,7 +705,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -723,7 +717,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                     }
 
                     Machine::ConveyorRight => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.conveyor_right.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -733,7 +727,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Machine(Machine::ConveyorRight));
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -743,7 +737,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -755,7 +749,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                     }
 
                     Machine::Adder => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.adder.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -765,7 +759,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Machine(Machine::Adder));
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -775,7 +769,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -785,7 +779,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Spot { offset_x: 1, offset_y: 0 });
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -797,7 +791,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                     }
 
                     Machine::Multiplicator => {
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.multiplicator.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -807,7 +801,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Machine(Machine::Multiplicator));
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -817,7 +811,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -827,7 +821,7 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                             ..default()
                         }).insert(BuildingGhost::Spot { offset_x: 1, offset_y: 0 });
 
-                        commands.spawn_bundle(SpriteBundle {
+                        commands.spawn(SpriteBundle {
                             texture: assets.spot.clone(),
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.5),
@@ -842,7 +836,6 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                 commands.entity(entity)
                     .insert(Animator::new(Tween::new(
                         EaseFunction::CubicOut,
-                        TweeningType::Once,
                         Duration::from_secs_f32(0.2),
                         UiPositionLens {
                             start: UiRect::new(Undefined, Undefined, Undefined, Px(8.0)),
@@ -855,7 +848,6 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                 commands.entity(entity)
                     .insert(Animator::new(Tween::new(
                         EaseFunction::CubicOut,
-                        TweeningType::Once,
                         Duration::from_secs_f32(0.2),
                         UiPositionLens {
                             start: UiRect::new(Undefined, Undefined, Undefined, Px(0.0)),
@@ -868,7 +860,6 @@ pub fn handle_machine_buy_buttons(mut commands: Commands,
                 commands.entity(entity)
                     .insert(Animator::new(Tween::new(
                         EaseFunction::CubicOut,
-                        TweeningType::Once,
                         Duration::from_secs_f32(0.2),
                         UiPositionLens {
                             start: UiRect::new(Undefined, Undefined, Undefined, Px(8.0)),
@@ -1009,7 +1000,7 @@ pub fn place_ghosts(mut commands: Commands,
                     .remove::<BuildingGhost>()
                     .insert(PlacedMachine {
                         machine: *machine,
-                        action_timer: Timer::new(machine.action_period(), true),
+                        action_timer: Timer::new(machine.action_period(), TimerMode::Repeating),
                     })
                     .insert(TileTrackedEntity);
                 transform.translation.z = 0.0;
@@ -1029,7 +1020,9 @@ pub fn act_machines(mut commands: Commands,
         if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile_pos) {
             for &entity in entities {
                 if let Ok((coin, money)) = coins.get(entity) {
-                    return Some((entity, coin, money));
+                    if coin.pickable() {
+                        return Some((entity, coin, money));
+                    }
                 }
             }
 
@@ -1039,7 +1032,7 @@ pub fn act_machines(mut commands: Commands,
         return None;
     };
 
-    let mut spew_coin = |position: Vec2, value: u64, angle: f32| {
+    let mut spew_coin = |position: Vec2, value: u128, angle: f32| {
         let spread = PI / 4.0;
         let speed = 80.0 + 30.0 * rand::random::<f32>();
         let velocity = Vec2::from_angle(rand::random::<f32>() * spread - spread / 2.0 + angle) * speed;

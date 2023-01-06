@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::render::texture::{CompressedImageFormats, ImageType};
 use bevy_ninepatch::{NinePatch, NinePatchBuilder};
 
+#[derive(Resource)]
 pub struct GameAssets {
     pub font: Handle<Font>,
     pub panel: (Handle<Image>, Handle<NinePatchBuilder>),
