@@ -1,0 +1,2 @@
+[env]
+BEVY_ASSET_PATH = { value = "assets-game", relative = true }

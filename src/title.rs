@@ -12,7 +12,7 @@ const FADE_OUT_TIME: f32 = 0.4;
 
 pub fn startup_title(
     mut commands: Commands,
-    game_assets: Res<GameAssets>,
+    ui_fonts: Res<Fonts>,
 ) {
     commands.spawn(NodeBundle {
         style: Style {
@@ -28,7 +28,7 @@ pub fn startup_title(
     }).with_children(|container| {
         container.spawn(TextBundle {
             text: Text::from_section("One Clicker", TextStyle {
-                font: game_assets.font.clone(),
+                font: ui_fonts.varela.clone(),
                 font_size: 64.0,
                 color: palette::DARK_BLUE,
             }).with_alignment(TextAlignment {
@@ -41,7 +41,7 @@ pub fn startup_title(
 
         container.spawn(TextBundle {
             text: Text::from_section("Click to start", TextStyle {
-                font: game_assets.font.clone(),
+                font: ui_fonts.varela.clone(),
                 font_size: 48.0,
                 color: palette::BLUE,
             }).with_alignment(TextAlignment {
@@ -62,7 +62,7 @@ pub fn startup_title(
 
         container.spawn(TextBundle {
             text: Text::from_section("Game by RedTeapot\nMade for Bevy Jam #2", TextStyle {
-                font: game_assets.font.clone(),
+                font: ui_fonts.varela.clone(),
                 font_size: 32.0,
                 color: palette::LIGHT_BROWN,
             }).with_alignment(TextAlignment {
@@ -76,7 +76,7 @@ pub fn startup_title(
         let version_str = format!("Version {} (post-jam)", env!("CARGO_PKG_VERSION"));
         container.spawn(TextBundle {
             text: Text::from_section(version_str.as_str(), TextStyle {
-                font: game_assets.font.clone(),
+                font: ui_fonts.varela.clone(),
                 font_size: 32.0,
                 color: palette::LIGHT_BLUE,
             }),

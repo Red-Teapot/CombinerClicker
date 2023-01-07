@@ -12,29 +12,6 @@ rm -r release/${PLATFORM}
 mkdir release/${PLATFORM}
 '''
 
-[tasks.collect-assets]
-condition = { env_set = ['PLATFORM'] }
-script_runner = '@duckscript'
-script = '''
-assets = array
-
-pngs = glob_array assets/**/*.png
-assets = array_concat ${assets} ${pngs}
-
-wavs = glob_array assets/**/*.wav
-assets = array_concat ${assets} ${wavs}
-
-oggs = glob_array assets/**/*.ogg
-assets = array_concat ${assets} ${oggs}
-
-ttfs = glob_array assets/**/*.ttf
-assets = array_concat ${assets} ${ttfs}
-
-for path in ${assets}
-    cp ${path} release/${PLATFORM}/${path}
-end
-'''
-
 [tasks.zip-platform]
 condition = { env_set = ['PLATFORM'] }
 # TODO: Use something more lightweight here to zip the files
@@ -121,13 +98,9 @@ command = 'wasm-pack'
 args = ['build', '--target', 'web']
 install_crate = { crate_name = 'wasm-pack', test_arg = '--help' }
 
-[tasks.collect-assets-web]
-env = { 'PLATFORM' = 'web' }
-run_task = 'collect-assets'
-
 [tasks.distrib-web]
 env = { 'PLATFORM' = 'web' }
-dependencies = ['prepare-release-dir-web', 'compile-web', 'collect-assets-web']
+dependencies = ['prepare-release-dir-web', 'compile-web']
 script_runner = '@duckscript'
 script = '''
 cp pkg/${PROJECT_NAME}_bg.wasm release/${PLATFORM}/${PROJECT_NAME}.wasm
@@ -163,13 +136,9 @@ run_task = 'prepare-release-dir'
 command = 'cargo'
 args = ['build', '--release', '--target', '${WINDOWS_TARGET}']
 
-[tasks.collect-assets-windows]
-env = { 'PLATFORM' = 'windows' }
-run_task = 'collect-assets'
-
 [tasks.distrib-windows]
 env = { 'PLATFORM' = 'windows' }
-dependencies = ['prepare-release-dir-windows', 'compile-windows', 'collect-assets-windows']
+dependencies = ['prepare-release-dir-windows', 'compile-windows']
 script_runner = '@duckscript'
 script = '''
 cp target/${WINDOWS_TARGET}/release/${WINDOWS_EXE_NAME} release/${PLATFORM}/${WINDOWS_EXE_NAME}

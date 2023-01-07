@@ -2,7 +2,7 @@ use std::time::Duration;
 use bevy::math::vec2;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use crate::assets::GameAssets;
+use crate::assets::Images;
 
 #[derive(Component, Copy, Clone)]
 pub enum Machine {
@@ -13,14 +13,14 @@ pub enum Machine {
     ConveyorLeft,
     ConveyorRight,
     Adder,
-    Multiplicator,
+    Multiplier,
 }
 
 impl Machine {
     pub fn list() -> &'static [Machine] {
         use crate::gameplay::components::Machine::*;
 
-        &[Miner, Collector, ConveyorUp, ConveyorDown, ConveyorLeft, ConveyorRight, Adder, Multiplicator]
+        &[Miner, Collector, ConveyorUp, ConveyorDown, ConveyorLeft, ConveyorRight, Adder, Multiplier]
     }
 
     pub fn cost(&self) -> u128 {
@@ -34,11 +34,11 @@ impl Machine {
             ConveyorLeft => 10,
             ConveyorRight => 10,
             Adder => 500,
-            Multiplicator => 1000,
+            Multiplier => 1000,
         }
     }
 
-    pub fn image(&self, assets: &GameAssets) -> Handle<Image> {
+    pub fn image(&self, assets: &Images) -> Handle<Image> {
         use crate::gameplay::components::Machine::*;
 
         match self {
@@ -49,7 +49,7 @@ impl Machine {
             ConveyorLeft => assets.conveyor_left.clone(),
             ConveyorRight => assets.conveyor_right.clone(),
             Adder => assets.adder.clone(),
-            Multiplicator => assets.multiplicator.clone(),
+            Multiplier => assets.multiplier.clone(),
         }
     }
 
@@ -64,7 +64,7 @@ impl Machine {
             ConveyorLeft => "Left Conveyor",
             ConveyorRight => "Right Conveyor",
             Adder => "Adder",
-            Multiplicator => "Multiplier",
+            Multiplier => "Multiplier",
         }
     }
 
@@ -79,7 +79,7 @@ impl Machine {
             ConveyorLeft => Duration::from_secs_f32(0.2),
             ConveyorRight => Duration::from_secs_f32(0.2),
             Adder => Duration::from_secs_f32(1.0),
-            Multiplicator => Duration::from_secs_f32(1.0),
+            Multiplier => Duration::from_secs_f32(1.0),
         }
     }
 }
