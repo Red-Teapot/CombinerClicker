@@ -125,7 +125,7 @@ dependencies = ['distrib-web']
 condition = { env_set = ['BUTLER_EXE'] }
 script_runner = '@duckscript'
 script = '''
-exec ${BUTLER_EXE} push release/web ${ITCH_USER}/${ITCH_GAME}:web
+exec ${BUTLER_EXE} push release/web ${ITCH_USER}/${ITCH_GAME}:web --userversion ${CARGO_MAKE_PROJECT_VERSION}
 '''
 
 [tasks.prepare-release-dir-windows]
@@ -155,7 +155,7 @@ dependencies = ['distrib-windows']
 condition = { env_set = ['BUTLER_EXE'] }
 script_runner = '@duckscript'
 script = '''
-exec ${BUTLER_EXE} push release/windows ${ITCH_USER}/${ITCH_GAME}:windows
+exec ${BUTLER_EXE} push release/windows ${ITCH_USER}/${ITCH_GAME}:windows --userversion ${CARGO_MAKE_PROJECT_VERSION}
 '''
 
 [tasks.distrib]
