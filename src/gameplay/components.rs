@@ -122,6 +122,7 @@ pub struct Coin {
     pub spawn_timer: Timer,
     pub despawn_timer: Timer,
     pub has_money: bool,
+    pub alive: bool,
 }
 
 #[derive(Resource)]
@@ -138,7 +139,7 @@ pub struct CoinPickup {
 
 impl Coin {
     pub fn pickable(&self) -> bool {
-        self.spawn_timer.finished() && self.despawn_timer.paused()
+        self.alive && self.spawn_timer.finished() && self.despawn_timer.paused()
     }
 }
 

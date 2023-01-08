@@ -481,13 +481,14 @@ fn spawn_coin(
                 timer
             },
             has_money: true,
+            alive: true,
         })
         .insert(TileTrackedEntity);
 
-        depth.depth += depth.step;
-        if depth.depth >= 0.2 {
-            depth.depth = 0.1;
-        }
+    depth.depth += depth.step;
+    if depth.depth >= 0.2 {
+        depth.depth = 0.1;
+    }
 }
 
 pub fn click_coins(
@@ -1235,48 +1236,50 @@ pub fn act_machines(
     images: Res<Images>,
     mut depth: ResMut<NextCoinDepth>,
     mut machines: Query<(&Transform, &mut PlacedMachine)>,
-    coins: Query<(&Coin, &Money), Without<PlacedMachine>>,
+    mut coins: Query<(&mut Coin, &Money), Without<PlacedMachine>>,
     tile_tracked_entities: Res<TileTrackedEntities>,
     time: Res<Time>,
     mut coin_pickups: EventWriter<CoinPickup>,
 ) {
-    let find_coin = |tile_pos: TilePosition| -> Option<(Entity, &Coin, &Money)> {
-        if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile_pos) {
-            for &entity in entities {
-                if let Ok((coin, money)) = coins.get(entity) {
-                    if coin.pickable() {
-                        return Some((entity, coin, money));
-                    }
-                }
-            }
-
-            return None;
-        }
-
-        return None;
-    };
-
-    let mut spew_coin = |position: Vec2, value: u128, angle: f32| {
-        let spread = PI / 4.0;
-        let speed = 80.0 + 30.0 * rand::random::<f32>();
-        let velocity =
-            Vec2::from_angle(rand::random::<f32>() * spread - spread / 2.0 + angle) * speed;
-        spawn_coin(
-            &mut commands,
-            &mut depth,
-            &fonts,
-            &images,
-            value,
-            position,
-            velocity,
-            0.6,
-        );
-    };
-
+    let mut consumed_coins = Vec::new();
     for (transform, mut placed_machine) in machines.iter_mut() {
+        consumed_coins.clear();
         placed_machine.action_timer.tick(time.delta());
 
         if placed_machine.action_timer.just_finished() {
+            let find_coin = |tile_pos: TilePosition| -> Option<(Entity, &Coin, &Money)> {
+                if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile_pos) {
+                    for &entity in entities {
+                        if let Ok((coin, money)) = coins.get(entity) {
+                            if coin.pickable() {
+                                return Some((entity, &coin, money));
+                            }
+                        }
+                    }
+
+                    return None;
+                }
+
+                return None;
+            };
+
+            let mut spew_coin = |position: Vec2, value: u128, angle: f32| {
+                let spread = PI / 4.0;
+                let speed = 80.0 + 30.0 * rand::random::<f32>();
+                let velocity =
+                    Vec2::from_angle(rand::random::<f32>() * spread - spread / 2.0 + angle) * speed;
+                spawn_coin(
+                    &mut commands,
+                    &mut depth,
+                    &fonts,
+                    &images,
+                    value,
+                    position,
+                    velocity,
+                    0.6,
+                );
+            };
+
             let position = transform.translation.truncate();
             let tile_pos = TilePosition::from_world(position);
 
@@ -1287,6 +1290,7 @@ pub fn act_machines(
 
                 Machine::Collector => {
                     if let Some((entity, _coin, _)) = find_coin(tile_pos.offset(0, 1)) {
+                        consumed_coins.push(entity);
                         coin_pickups.send(CoinPickup {
                             coin: entity,
                             target: position,
@@ -1304,11 +1308,13 @@ pub fn act_machines(
                             Some((entity_left, _coin_left, money_left)),
                             Some((entity_right, _coin_right, money_right)),
                         ) => {
+                            consumed_coins.push(entity_left);
                             coin_pickups.send(CoinPickup {
                                 coin: entity_left,
                                 target: position,
                                 add_money: false,
                             });
+                            consumed_coins.push(entity_right);
                             coin_pickups.send(CoinPickup {
                                 coin: entity_right,
                                 target: position,
@@ -1327,6 +1333,7 @@ pub fn act_machines(
                         find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(0, -1)));
 
                     if let Some((entity, _, money)) = coin_stuff {
+                        consumed_coins.push(entity);
                         coin_pickups.send(CoinPickup {
                             coin: entity,
                             target: position,
@@ -1341,6 +1348,7 @@ pub fn act_machines(
                         find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(0, 1)));
 
                     if let Some((entity, _, money)) = coin_stuff {
+                        consumed_coins.push(entity);
                         coin_pickups.send(CoinPickup {
                             coin: entity,
                             target: position,
@@ -1355,6 +1363,7 @@ pub fn act_machines(
                         find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(1, 0)));
 
                     if let Some((entity, _, money)) = coin_stuff {
+                        consumed_coins.push(entity);
                         coin_pickups.send(CoinPickup {
                             coin: entity,
                             target: position,
@@ -1369,6 +1378,7 @@ pub fn act_machines(
                         find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(-1, 0)));
 
                     if let Some((entity, _, money)) = coin_stuff {
+                        consumed_coins.push(entity);
                         coin_pickups.send(CoinPickup {
                             coin: entity,
                             target: position,
@@ -1387,11 +1397,13 @@ pub fn act_machines(
                             Some((entity_left, _coin_left, money_left)),
                             Some((entity_right, _coin_right, money_right)),
                         ) => {
+                            consumed_coins.push(entity_left);
                             coin_pickups.send(CoinPickup {
                                 coin: entity_left,
                                 target: position,
                                 add_money: false,
                             });
+                            consumed_coins.push(entity_right);
                             coin_pickups.send(CoinPickup {
                                 coin: entity_right,
                                 target: position,
@@ -1405,6 +1417,11 @@ pub fn act_machines(
                     }
                 }
             }
+        }
+
+        for coin_entity in consumed_coins.iter() {
+            let (mut coin, _) = coins.get_mut(*coin_entity).unwrap();
+            coin.alive = false;
         }
     }
 }
