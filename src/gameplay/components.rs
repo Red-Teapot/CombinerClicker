@@ -124,6 +124,12 @@ pub struct Coin {
     pub has_money: bool,
 }
 
+#[derive(Resource)]
+pub struct NextCoinDepth {
+    pub depth: f32,
+    pub step: f32,
+}
+
 pub struct CoinPickup {
     pub coin: Entity,
     pub target: Vec2,

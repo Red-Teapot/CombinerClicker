@@ -28,6 +28,11 @@ pub fn startup_gameplay(
 
     commands.insert_resource(Money(0));
 
+    commands.insert_resource(NextCoinDepth {
+        depth: 0.1,
+        step: 0.00000001,
+    });
+
     commands.insert_resource(WorldMouseState::None);
 
     commands.insert_resource(TileTrackedEntities::new());
@@ -425,6 +430,7 @@ pub fn move_particles(mut particles: Query<(&mut Transform, &mut Particle)>) {
 
 fn spawn_coin(
     commands: &mut Commands,
+    depth: &mut ResMut<NextCoinDepth>,
     fonts: &Res<Fonts>,
     game_images: &Res<Images>,
     value: u128,
@@ -437,7 +443,7 @@ fn spawn_coin(
     commands
         .spawn(SpriteBundle {
             texture: game_images.coin.clone(),
-            transform: Transform::from_translation(position.extend(0.2))
+            transform: Transform::from_translation(position.extend(depth.depth))
                 .with_scale(Vec3::splat(0.0)),
             ..default()
         })
@@ -452,7 +458,7 @@ fn spawn_coin(
                     },
                 )
                 .with_alignment(TextAlignment::CENTER),
-                transform: Transform::from_xyz(0.0, 0.0, 0.1),
+                transform: Transform::from_xyz(0.0, 0.0, depth.step * 0.5),
                 ..default()
             });
         })
@@ -477,6 +483,11 @@ fn spawn_coin(
             has_money: true,
         })
         .insert(TileTrackedEntity);
+
+        depth.depth += depth.step;
+        if depth.depth >= 0.2 {
+            depth.depth = 0.1;
+        }
 }
 
 pub fn click_coins(
@@ -484,6 +495,7 @@ pub fn click_coins(
     ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
     fonts: Res<Fonts>,
     game_images: Res<Images>,
+    mut depth: ResMut<NextCoinDepth>,
     mut world_mouse_events: EventReader<WorldMouseEvent>,
 ) {
     if !ghosts.is_empty() {
@@ -497,6 +509,7 @@ pub fn click_coins(
                 let initial_velocity = Vec2::from_angle(rand::random::<f32>() * 2.0 * PI) * 80.0;
                 spawn_coin(
                     &mut commands,
+                    &mut depth,
                     &fonts,
                     &game_images,
                     1,
@@ -1220,6 +1233,7 @@ pub fn act_machines(
     mut commands: Commands,
     fonts: Res<Fonts>,
     images: Res<Images>,
+    mut depth: ResMut<NextCoinDepth>,
     mut machines: Query<(&Transform, &mut PlacedMachine)>,
     coins: Query<(&Coin, &Money), Without<PlacedMachine>>,
     tile_tracked_entities: Res<TileTrackedEntities>,
@@ -1249,6 +1263,7 @@ pub fn act_machines(
             Vec2::from_angle(rand::random::<f32>() * spread - spread / 2.0 + angle) * speed;
         spawn_coin(
             &mut commands,
+            &mut depth,
             &fonts,
             &images,
             value,
