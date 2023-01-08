@@ -1,6 +1,7 @@
 /target
 /pkg
 /.idea
+/.vscode
 /release
 Cargo.lock
 *.env
