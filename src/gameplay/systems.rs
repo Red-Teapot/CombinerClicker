@@ -121,7 +121,15 @@ pub fn startup_gameplay(
                         })
                         .insert(Name::new("Money Display"));
                 })
-                .insert(Name::new("Top Panel"));
+                .insert(Name::new("Top Panel"))
+                .insert(Animator::new(Tween::new(
+                    EaseFunction::QuadraticOut,
+                    Duration::from_secs_f32(0.2),
+                    UiPositionLens {
+                        start: UiRect::top(Val::Px(-64.0)),
+                        end: UiRect::top(Val::Px(0.0)),
+                    },
+                )));
 
             let bottom_panel_content = window
                 .spawn(NodeBundle {
@@ -220,14 +228,22 @@ pub fn startup_gameplay(
                         justify_content: JustifyContent::Center,
                         align_self: AlignSelf::Center,
                         position: UiRect {
-                            bottom: Val::Px(-84.0),
+                            bottom: Val::Px(-84.0 - 144.0),
                             ..default()
                         },
                         ..default()
                     },
                     ..default()
                 })
-                .insert(Name::new("Bottom Panel"));
+                .insert(Name::new("Bottom Panel"))
+                .insert(Animator::new(Tween::new(
+                    EaseFunction::QuadraticOut,
+                    Duration::from_secs_f32(0.2),
+                    UiPositionLens {
+                        start: UiRect::bottom(Val::Px(-84.0 - 144.0)),
+                        end: UiRect::bottom(Val::Px(-84.0)),
+                    },
+                )));
         });
 }
 

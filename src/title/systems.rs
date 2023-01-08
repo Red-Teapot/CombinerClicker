@@ -144,7 +144,6 @@ pub fn handle_title_click(
                         },
                     )));
                 }
-                info!("Starting title fade out");
             }
 
             _ => (),
@@ -163,7 +162,6 @@ pub fn handle_title_click(
                     commands.entity(hint).despawn_recursive();
                 }
 
-                info!("Starting gameplay");
                 commands.insert_resource(NextState(GameState::Gameplay));
             }
         }
