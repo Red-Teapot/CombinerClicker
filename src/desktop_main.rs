@@ -1,6 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use bevy::prelude::App;
+use bevy::prelude::*;
 
 fn main() {
     let mut app = App::new();

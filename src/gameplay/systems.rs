@@ -3,16 +3,16 @@ use std::ops::Add;
 use std::time::Duration;
 
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
-use bevy::math::{vec2, vec3};
+use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 use bevy_ninepatch::{NinePatchBundle, NinePatchData};
-use bevy_tweening::*;
 use bevy_tweening::lens::{TransformPositionLens, TransformScaleLens, UiPositionLens};
+use bevy_tweening::*;
 
-use crate::{BackgroundInteraction, palette};
 use crate::assets::*;
 use crate::gameplay::components::*;
+use crate::{palette, BackgroundInteraction};
 
 const CLICK_DURATION: f64 = 0.2;
 const CLICK_DISTANCE: f32 = 10.0;
@@ -32,162 +32,204 @@ pub fn startup_gameplay(
 
     commands.insert_resource(TileTrackedEntities::new());
 
-    commands.spawn(NodeBundle {
-        style: Style {
-            size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-            align_items: AlignItems::Stretch,
-            justify_content: JustifyContent::SpaceBetween,
-            flex_direction: FlexDirection::Column,
-            ..default()
-        },
-        focus_policy: FocusPolicy::Pass,
-        ..default()
-    }).with_children(|window| {
-        window.spawn(NodeBundle {
+    commands
+        .spawn(NodeBundle {
             style: Style {
-                align_items: AlignItems::FlexEnd,
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                align_items: AlignItems::Stretch,
+                justify_content: JustifyContent::SpaceBetween,
+                flex_direction: FlexDirection::Column,
                 ..default()
             },
             focus_policy: FocusPolicy::Pass,
             ..default()
-        }).with_children(|top_panel| {
-            top_panel.spawn(NodeBundle {
-                style: Style {
-                    flex_direction: FlexDirection::Row,
-                    padding: UiRect::all(Val::Px(8.0)),
-                    ..default()
-                },
-                ..default()
-            }).with_children(|money_display| {
-                money_display.spawn(ImageBundle {
-                    image: images.coin.clone().into(),
+        })
+        .with_children(|window| {
+            window
+                .spawn(NodeBundle {
                     style: Style {
-                        size: Size::new(Val::Px(48.0), Val::Px(48.0)),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
+                        align_items: AlignItems::FlexEnd,
                         ..default()
                     },
+                    focus_policy: FocusPolicy::Pass,
                     ..default()
-                }).with_children(|coin| {
-                    coin.spawn(TextBundle {
-                        text: Text::from_section("1", TextStyle {
-                            font: fonts.varela.clone(),
-                            color: palette::DARK_BLUE,
-                            font_size: 40.0,
-                        }).with_alignment(TextAlignment::CENTER),
-                        ..default()
-                    });
-                }).insert(Name::new("Icon"));
-
-                money_display.spawn(TextBundle {
-                    text: Text::from_section("0", TextStyle {
-                        font: fonts.varela.clone(),
-                        color: palette::DARK_BLUE,
-                        font_size: 48.0,
-                    }),
-                    style: Style {
-                        margin: UiRect {
-                            left: Val::Px(16.0),
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    ..default()
-                }).insert(Name::new("Value")).insert(MoneyDisplay);
-            }).insert(Name::new("Money Display"));
-        }).insert(Name::new("Top Panel"));
-
-        let bottom_panel_content = window.spawn(NodeBundle {
-            style: Style {
-                align_items: AlignItems::FlexStart,
-                justify_content: JustifyContent::Center,
-                min_size: Size {
-                    height:Val::Px(192.0),
-                    ..default()
-                },
-                padding: UiRect::all(Val::Px(-8.0)),
-                ..default()
-            },
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        }).with_children(|bottom_panel| {
-            for machine in Machine::list() {
-                bottom_panel.spawn(ButtonBundle {
-                    style: Style {
-                        flex_direction: FlexDirection::Column,
-                        padding: UiRect::all(Val::Px(8.0)),
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: Color::NONE.into(),
-                    ..default()
-                }).with_children(|container| {
-                    container.spawn(TextBundle {
-                        text: Text::from_section("???", TextStyle {
-                            font: fonts.varela.clone(),
-                            color: palette::LIGHT_BROWN,
-                            font_size: 20.0,
-                        }),
-                        style: Style {
-                            margin: UiRect {
-                                bottom:Val::Px(4.0),
+                })
+                .with_children(|top_panel| {
+                    top_panel
+                        .spawn(NodeBundle {
+                            style: Style {
+                                flex_direction: FlexDirection::Row,
+                                padding: UiRect::all(Val::Px(8.0)),
                                 ..default()
                             },
                             ..default()
-                        },
-                        focus_policy: FocusPolicy::Pass,
-                        ..default()
-                    }).insert(MachineName(*machine));
+                        })
+                        .with_children(|money_display| {
+                            money_display
+                                .spawn(ImageBundle {
+                                    image: images.coin.clone().into(),
+                                    style: Style {
+                                        size: Size::new(Val::Px(48.0), Val::Px(48.0)),
+                                        justify_content: JustifyContent::Center,
+                                        align_items: AlignItems::Center,
+                                        ..default()
+                                    },
+                                    ..default()
+                                })
+                                .with_children(|coin| {
+                                    coin.spawn(TextBundle {
+                                        text: Text::from_section(
+                                            "1",
+                                            TextStyle {
+                                                font: fonts.varela.clone(),
+                                                color: palette::DARK_BLUE,
+                                                font_size: 40.0,
+                                            },
+                                        )
+                                        .with_alignment(TextAlignment::CENTER),
+                                        ..default()
+                                    });
+                                })
+                                .insert(Name::new("Icon"));
 
-                    container.spawn(ImageBundle {
-                        image: images.locked.clone().into(),
-                        style: Style {
-                            size: Size::new(Val::Px(64.0),Val::Px(64.0)),
+                            money_display
+                                .spawn(TextBundle {
+                                    text: Text::from_section(
+                                        "0",
+                                        TextStyle {
+                                            font: fonts.varela.clone(),
+                                            color: palette::DARK_BLUE,
+                                            font_size: 48.0,
+                                        },
+                                    ),
+                                    style: Style {
+                                        margin: UiRect {
+                                            left: Val::Px(16.0),
+                                            ..default()
+                                        },
+                                        ..default()
+                                    },
+                                    ..default()
+                                })
+                                .insert(Name::new("Value"))
+                                .insert(MoneyDisplay);
+                        })
+                        .insert(Name::new("Money Display"));
+                })
+                .insert(Name::new("Top Panel"));
+
+            let bottom_panel_content = window
+                .spawn(NodeBundle {
+                    style: Style {
+                        align_items: AlignItems::FlexStart,
+                        justify_content: JustifyContent::Center,
+                        min_size: Size {
+                            height: Val::Px(192.0),
                             ..default()
                         },
-                        focus_policy: FocusPolicy::Pass,
+                        padding: UiRect::all(Val::Px(-8.0)),
                         ..default()
-                    }).insert(MachineIcon(*machine));
-
-                    container.spawn(TextBundle {
-                        text: Text::from_section(machine.cost().to_string(), TextStyle {
-                            font: fonts.varela.clone(),
-                            color: palette::DARK_BLUE,
-                            font_size: 28.0,
-                        }),
-                        focus_policy: FocusPolicy::Pass,
-                        ..default()
-                    });
-                }).insert(MachineBuyButton {
-                    enabled: false,
-                    machine: *machine,
-                });
-            }
-        }).insert(Name::new("Bottom Panel Content")).id();
-
-        window.spawn(NinePatchBundle {
-            nine_patch_data: NinePatchData::with_single_content(
-                images.panel.clone(),
-                ninepatches.panel.clone(),
-                bottom_panel_content
-            ),
-            style: Style {
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                align_self: AlignSelf::Center,
-                position: UiRect {
-                    bottom:Val::Px(-84.0),
+                    },
+                    focus_policy: FocusPolicy::Pass,
                     ..default()
-                },
-                ..default()
-            },
-            ..default()
-        }).insert(Name::new("Bottom Panel"));
-    });
+                })
+                .with_children(|bottom_panel| {
+                    for machine in Machine::list() {
+                        bottom_panel
+                            .spawn(ButtonBundle {
+                                style: Style {
+                                    flex_direction: FlexDirection::Column,
+                                    padding: UiRect::all(Val::Px(8.0)),
+                                    align_items: AlignItems::Center,
+                                    ..default()
+                                },
+                                background_color: Color::NONE.into(),
+                                ..default()
+                            })
+                            .with_children(|container| {
+                                container
+                                    .spawn(TextBundle {
+                                        text: Text::from_section(
+                                            "???",
+                                            TextStyle {
+                                                font: fonts.varela.clone(),
+                                                color: palette::LIGHT_BROWN,
+                                                font_size: 20.0,
+                                            },
+                                        ),
+                                        style: Style {
+                                            margin: UiRect {
+                                                bottom: Val::Px(4.0),
+                                                ..default()
+                                            },
+                                            ..default()
+                                        },
+                                        focus_policy: FocusPolicy::Pass,
+                                        ..default()
+                                    })
+                                    .insert(MachineName(*machine));
+
+                                container
+                                    .spawn(ImageBundle {
+                                        image: images.locked.clone().into(),
+                                        style: Style {
+                                            size: Size::new(Val::Px(64.0), Val::Px(64.0)),
+                                            ..default()
+                                        },
+                                        focus_policy: FocusPolicy::Pass,
+                                        ..default()
+                                    })
+                                    .insert(MachineIcon(*machine));
+
+                                container.spawn(TextBundle {
+                                    text: Text::from_section(
+                                        machine.cost().to_string(),
+                                        TextStyle {
+                                            font: fonts.varela.clone(),
+                                            color: palette::DARK_BLUE,
+                                            font_size: 28.0,
+                                        },
+                                    ),
+                                    focus_policy: FocusPolicy::Pass,
+                                    ..default()
+                                });
+                            })
+                            .insert(MachineBuyButton {
+                                enabled: false,
+                                machine: *machine,
+                            });
+                    }
+                })
+                .insert(Name::new("Bottom Panel Content"))
+                .id();
+
+            window
+                .spawn(NinePatchBundle {
+                    nine_patch_data: NinePatchData::with_single_content(
+                        images.panel.clone(),
+                        ninepatches.panel.clone(),
+                        bottom_panel_content,
+                    ),
+                    style: Style {
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        align_self: AlignSelf::Center,
+                        position: UiRect {
+                            bottom: Val::Px(-84.0),
+                            ..default()
+                        },
+                        ..default()
+                    },
+                    ..default()
+                })
+                .insert(Name::new("Bottom Panel"));
+        });
 }
 
-pub fn track_tile_entities(entities: Query<(Entity, &GlobalTransform), With<TileTrackedEntity>>,
-                           mut tracked_entities: ResMut<TileTrackedEntities>) {
+pub fn track_tile_entities(
+    entities: Query<(Entity, &GlobalTransform), With<TileTrackedEntity>>,
+    mut tracked_entities: ResMut<TileTrackedEntities>,
+) {
     tracked_entities.clear();
 
     for (entity, transform) in entities.iter() {
@@ -195,13 +237,15 @@ pub fn track_tile_entities(entities: Query<(Entity, &GlobalTransform), With<Tile
     }
 }
 
-pub fn handle_bg_input(mut world_mouse_state: ResMut<WorldMouseState>,
-                       time: Res<Time>,
-                       bg_inter: Query<&Interaction, With<BackgroundInteraction>>,
-                       mut camera: Query<(&Camera, &GlobalTransform)>,
-                       buttons: Res<Input<MouseButton>>,
-                       windows: Res<Windows>,
-                       mut world_mouse_events: EventWriter<WorldMouseEvent>) {
+pub fn handle_bg_input(
+    mut world_mouse_state: ResMut<WorldMouseState>,
+    time: Res<Time>,
+    bg_inter: Query<&Interaction, With<BackgroundInteraction>>,
+    camera: Query<(&Camera, &GlobalTransform)>,
+    buttons: Res<Input<MouseButton>>,
+    windows: Res<Windows>,
+    mut world_mouse_events: EventWriter<WorldMouseEvent>,
+) {
     let (camera, camera_global_transform) = camera.single();
 
     let window = if let Some(window) = windows.get_primary() {
@@ -223,7 +267,8 @@ pub fn handle_bg_input(mut world_mouse_state: ResMut<WorldMouseState>,
         let ndc = (cursor_position_window / window_size) * 2.0 - Vec2::ONE;
 
         // matrix for undoing the projection and camera transform
-        let ndc_to_world = camera_global_transform.compute_matrix() * camera.projection_matrix().inverse();
+        let ndc_to_world =
+            camera_global_transform.compute_matrix() * camera.projection_matrix().inverse();
 
         // use it to convert ndc to world-space coordinates
         let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
@@ -236,12 +281,14 @@ pub fn handle_bg_input(mut world_mouse_state: ResMut<WorldMouseState>,
 
     for interaction in bg_inter.iter() {
         match interaction {
-            Interaction::Clicked => if buttons.just_pressed(MouseButton::Left) {
-                *world_mouse_state = WorldMouseState::Pressed {
-                    time: time.elapsed_seconds_f64(),
-                    position_window: cursor_position_window,
-                    position_world: cursor_position_world,
-                };
+            Interaction::Clicked => {
+                if buttons.just_pressed(MouseButton::Left) {
+                    *world_mouse_state = WorldMouseState::Pressed {
+                        time: time.elapsed_seconds_f64(),
+                        position_window: cursor_position_window,
+                        position_world: cursor_position_world,
+                    };
+                }
             }
 
             Interaction::Hovered => {
@@ -258,16 +305,18 @@ pub fn handle_bg_input(mut world_mouse_state: ResMut<WorldMouseState>,
                         });
                     }
 
-                    _ => { }
+                    _ => {}
                 }
             }
 
-            _ => { }
+            _ => {}
         }
     }
 
     let convert_drag_offset = |offset: Vec2| -> Vec2 {
-        let transform = camera_global_transform.compute_transform().with_translation(Vec3::ZERO);
+        let transform = camera_global_transform
+            .compute_transform()
+            .with_translation(Vec3::ZERO);
 
         transform.transform_point(offset.extend(0.0)).truncate()
     };
@@ -291,10 +340,18 @@ pub fn handle_bg_input(mut world_mouse_state: ResMut<WorldMouseState>,
             };
         }
 
-        (released, WorldMouseState::Pressed { time: press_time, position_world, position_window }) => {
+        (
+            released,
+            WorldMouseState::Pressed {
+                time: press_time,
+                position_world,
+                position_window,
+            },
+        ) => {
             let press_duration = time.elapsed_seconds_f64() - press_time;
             let press_distance = cursor_position_window.distance(position_window);
-            let suitable_for_click = press_duration < CLICK_DURATION && press_distance < CLICK_DISTANCE;
+            let suitable_for_click =
+                press_duration < CLICK_DURATION && press_distance < CLICK_DISTANCE;
 
             if released {
                 if suitable_for_click {
@@ -319,26 +376,29 @@ pub fn handle_bg_input(mut world_mouse_state: ResMut<WorldMouseState>,
             }
         }
 
-        _ => { }
+        _ => {}
     }
 }
 
-pub fn drag_camera(mut camera: Query<&mut Transform, With<Camera2d>>,
-                   mut world_mouse_events: EventReader<WorldMouseEvent>) {
+pub fn drag_camera(
+    mut camera: Query<&mut Transform, With<Camera2d>>,
+    mut world_mouse_events: EventReader<WorldMouseEvent>,
+) {
     let mut camera_transform = camera.single_mut();
 
     for event in world_mouse_events.iter() {
         match event {
-            WorldMouseEvent::Drag { offset } =>
-                camera_transform.translation -= offset.extend(0.0),
+            WorldMouseEvent::Drag { offset } => camera_transform.translation -= offset.extend(0.0),
 
-            _ => ()
+            _ => (),
         }
     }
 }
 
-pub fn zoom_camera(mut camera: Query<&mut Transform, With<Camera2d>>,
-                   mut scroll_events: EventReader<MouseWheel>) {
+pub fn zoom_camera(
+    mut camera: Query<&mut Transform, With<Camera2d>>,
+    mut scroll_events: EventReader<MouseWheel>,
+) {
     let mut camera_transform = camera.single_mut();
 
     let mut scroll = 1.0f32;
@@ -374,26 +434,30 @@ fn spawn_coin(
 ) {
     let font_size = 180.0 / ((value as f32).log10().floor() + 1.0).powf(0.75);
 
-    commands.spawn(SpriteBundle {
-        texture: game_images.coin.clone(),
-        transform: Transform::from_translation(position.extend(0.2))
-            .with_scale(Vec3::splat(0.0)),
-        ..default()
-    }).with_children(|coin| {
-        coin.spawn(Text2dBundle {
-            text: Text::from_section(value.to_string(), TextStyle {
-                font: fonts.varela.clone(),
-                color: palette::DARK_BLUE,
-                font_size,
-            }).with_alignment(TextAlignment::CENTER),
-            transform: Transform::from_xyz(0.0, 0.0, 0.1),
+    commands
+        .spawn(SpriteBundle {
+            texture: game_images.coin.clone(),
+            transform: Transform::from_translation(position.extend(0.2))
+                .with_scale(Vec3::splat(0.0)),
             ..default()
-        });
-    }).insert(Name::new("Coin"))
-        .insert(Particle {
-            velocity,
-            damping,
         })
+        .with_children(|coin| {
+            coin.spawn(Text2dBundle {
+                text: Text::from_section(
+                    value.to_string(),
+                    TextStyle {
+                        font: fonts.varela.clone(),
+                        color: palette::DARK_BLUE,
+                        font_size,
+                    },
+                )
+                .with_alignment(TextAlignment::CENTER),
+                transform: Transform::from_xyz(0.0, 0.0, 0.1),
+                ..default()
+            });
+        })
+        .insert(Name::new("Coin"))
+        .insert(Particle { velocity, damping })
         .insert(Money(value))
         .insert(Animator::new(Tween::new(
             EaseFunction::CubicOut,
@@ -401,7 +465,7 @@ fn spawn_coin(
             TransformScaleLens {
                 start: Vec3::splat(0.0),
                 end: Vec3::splat(1.0),
-            }
+            },
         )))
         .insert(Coin {
             spawn_timer: Timer::from_seconds(0.2, TimerMode::Once),
@@ -415,11 +479,13 @@ fn spawn_coin(
         .insert(TileTrackedEntity);
 }
 
-pub fn click_coins(mut commands: Commands,
-                   mut ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
-                   fonts: Res<Fonts>,
-                   game_images: Res<Images>,
-                   mut world_mouse_events: EventReader<WorldMouseEvent>) {
+pub fn click_coins(
+    mut commands: Commands,
+    ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
+    fonts: Res<Fonts>,
+    game_images: Res<Images>,
+    mut world_mouse_events: EventReader<WorldMouseEvent>,
+) {
     if !ghosts.is_empty() {
         world_mouse_events.clear();
         return;
@@ -429,19 +495,29 @@ pub fn click_coins(mut commands: Commands,
         match event {
             WorldMouseEvent::LeftClick { position } => {
                 let initial_velocity = Vec2::from_angle(rand::random::<f32>() * 2.0 * PI) * 80.0;
-                spawn_coin(&mut commands, &fonts, &game_images, 1, *position, initial_velocity, 0.6);
+                spawn_coin(
+                    &mut commands,
+                    &fonts,
+                    &game_images,
+                    1,
+                    *position,
+                    initial_velocity,
+                    0.6,
+                );
             }
 
-            _ => ()
+            _ => (),
         }
     }
 }
 
-pub fn update_coins(mut commands: Commands,
-                    mut coins: Query<(Entity, &Transform, &mut Coin, &Money)>,
-                    time: Res<Time>,
-                    mut money: ResMut<Money>,
-                    mut coin_pickup_events: EventReader<CoinPickup>) {
+pub fn update_coins(
+    mut commands: Commands,
+    mut coins: Query<(Entity, &Transform, &mut Coin, &Money)>,
+    time: Res<Time>,
+    mut money: ResMut<Money>,
+    mut coin_pickup_events: EventReader<CoinPickup>,
+) {
     for event in coin_pickup_events.iter() {
         let coin = coins.get_mut(event.coin);
 
@@ -453,11 +529,13 @@ pub fn update_coins(mut commands: Commands,
 
         const DESPAWN_DURATION: f32 = 0.1;
 
-        coin.despawn_timer.set_duration(Duration::from_secs_f32(DESPAWN_DURATION));
+        coin.despawn_timer
+            .set_duration(Duration::from_secs_f32(DESPAWN_DURATION));
         coin.despawn_timer.unpause();
         coin.has_money = event.add_money;
 
-        commands.entity(event.coin)
+        commands
+            .entity(event.coin)
             .insert(Animator::new(Tracks::new([
                 Tween::new(
                     EaseFunction::CubicIn,
@@ -465,7 +543,7 @@ pub fn update_coins(mut commands: Commands,
                     TransformScaleLens {
                         start: Vec3::splat(1.0),
                         end: Vec3::splat(0.0),
-                    }
+                    },
                 ),
                 Tween::new(
                     EaseFunction::CubicIn,
@@ -473,7 +551,7 @@ pub fn update_coins(mut commands: Commands,
                     TransformPositionLens {
                         start: transform.translation,
                         end: event.target.extend(0.0),
-                    }
+                    },
                 ),
             ])));
     }
@@ -492,31 +570,35 @@ pub fn update_coins(mut commands: Commands,
     }
 }
 
-pub fn hover_coins(mut coins: Query<(&Transform, &Coin), Without<BuildingGhost>>,
-                   mut world_mouse_events: EventReader<WorldMouseEvent>,
-                   mut tile_tracked_entities: ResMut<TileTrackedEntities>,
-                   mut coin_pickup_events: EventWriter<CoinPickup>) {
+pub fn hover_coins(
+    coins: Query<(&Transform, &Coin), Without<BuildingGhost>>,
+    mut world_mouse_events: EventReader<WorldMouseEvent>,
+    tile_tracked_entities: ResMut<TileTrackedEntities>,
+    mut coin_pickup_events: EventWriter<CoinPickup>,
+) {
     for event in world_mouse_events.iter() {
         match event {
             WorldMouseEvent::Hover { position } => {
                 let center_tile = TilePosition::from_world(*position);
                 let tiles_to_check = [
                     center_tile.offset(-1, -1),
-                    center_tile.offset( 0, -1),
-                    center_tile.offset( 1, -1),
-                    center_tile.offset(-1,  0),
+                    center_tile.offset(0, -1),
+                    center_tile.offset(1, -1),
+                    center_tile.offset(-1, 0),
                     center_tile,
-                    center_tile.offset( 1,  0),
-                    center_tile.offset(-1,  1),
-                    center_tile.offset( 0,  1),
-                    center_tile.offset( 1,  1),
+                    center_tile.offset(1, 0),
+                    center_tile.offset(-1, 1),
+                    center_tile.offset(0, 1),
+                    center_tile.offset(1, 1),
                 ];
 
                 for tile in tiles_to_check {
                     if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile) {
                         for &entity in entities {
                             if let Ok((transform, coin)) = coins.get(entity) {
-                                if coin.pickable() && position.distance(transform.translation.truncate()) <= 192.0 {
+                                if coin.pickable()
+                                    && position.distance(transform.translation.truncate()) <= 192.0
+                                {
                                     coin_pickup_events.send(CoinPickup {
                                         coin: entity,
                                         target: *position,
@@ -529,7 +611,7 @@ pub fn hover_coins(mut coins: Query<(&Transform, &Coin), Without<BuildingGhost>>
                 }
             }
 
-            _ => ()
+            _ => (),
         }
     }
 }
@@ -541,7 +623,7 @@ pub fn update_money(
     mut money_display: Query<&mut Text, With<MoneyDisplay>>,
     mut machine_names: Query<(&mut Text, &MachineName), Without<MoneyDisplay>>,
     mut machine_icons: Query<(&mut UiImage, &MachineIcon)>,
-    mut machine_buy_buttons: Query<&mut MachineBuyButton>
+    mut machine_buy_buttons: Query<&mut MachineBuyButton>,
 ) {
     if !money_res.is_changed() {
         return;
@@ -574,8 +656,8 @@ pub fn handle_machine_buy_buttons(
     ghosts: Query<&BuildingGhost>,
     images: Res<Images>,
     buttons: Query<(Entity, &Interaction, &MachineBuyButton), Changed<Interaction>>,
-    mut money: ResMut<Money>)
-{
+    mut money: ResMut<Money>,
+) {
     for (entity, interaction, button) in buttons.iter() {
         if !button.enabled {
             continue;
@@ -591,303 +673,397 @@ pub fn handle_machine_buy_buttons(
 
                 match button.machine {
                     Machine::Miner => {
-                        commands.spawn(SpriteBundle {
-                            texture: images.miner.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.miner.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Machine(Machine::Miner));
+                            })
+                            .insert(BuildingGhost::Machine(Machine::Miner));
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 0,
+                                offset_y: -1,
+                            });
                     }
 
                     Machine::Collector => {
-                        commands.spawn(SpriteBundle {
-                            texture: images.collector.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.collector.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Machine(Machine::Collector));
+                            })
+                            .insert(BuildingGhost::Machine(Machine::Collector));
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: 1 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 0,
+                                offset_y: 1,
+                            });
                     }
 
                     Machine::ConveyorUp => {
-                        commands.spawn(SpriteBundle {
-                            texture: images.conveyor_up.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.conveyor_up.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Machine(Machine::ConveyorUp));
+                            })
+                            .insert(BuildingGhost::Machine(Machine::ConveyorUp));
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 0,
+                                offset_y: -1,
+                            });
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: 1 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 0,
+                                offset_y: 1,
+                            });
                     }
 
                     Machine::ConveyorDown => {
-                        commands.spawn(SpriteBundle {
-                            texture: images.conveyor_down.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.conveyor_down.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Machine(Machine::ConveyorDown));
+                            })
+                            .insert(BuildingGhost::Machine(Machine::ConveyorDown));
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 0,
+                                offset_y: -1,
+                            });
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: 1 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 0,
+                                offset_y: 1,
+                            });
                     }
 
                     Machine::ConveyorLeft => {
-                        commands.spawn(SpriteBundle {
-                            texture: images.conveyor_left.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.conveyor_left.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Machine(Machine::ConveyorLeft));
+                            })
+                            .insert(BuildingGhost::Machine(Machine::ConveyorLeft));
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: -1,
+                                offset_y: 0,
+                            });
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 1, offset_y: 0 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 1,
+                                offset_y: 0,
+                            });
                     }
 
                     Machine::ConveyorRight => {
-                        commands.spawn(SpriteBundle {
-                            texture: images.conveyor_right.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.conveyor_right.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Machine(Machine::ConveyorRight));
+                            })
+                            .insert(BuildingGhost::Machine(Machine::ConveyorRight));
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: -1,
+                                offset_y: 0,
+                            });
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 1, offset_y: 0 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 1,
+                                offset_y: 0,
+                            });
                     }
 
                     Machine::Adder => {
-                        commands.spawn(SpriteBundle {
-                            texture: images.adder.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.adder.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Machine(Machine::Adder));
+                            })
+                            .insert(BuildingGhost::Machine(Machine::Adder));
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: -1,
+                                offset_y: 0,
+                            });
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 1, offset_y: 0 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 1,
+                                offset_y: 0,
+                            });
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 0,
+                                offset_y: -1,
+                            });
                     }
 
                     Machine::Multiplier => {
-                        commands.spawn(SpriteBundle {
-                            texture: images.multiplier.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.multiplier.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Machine(Machine::Multiplier));
+                            })
+                            .insert(BuildingGhost::Machine(Machine::Multiplier));
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: -1, offset_y: 0 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: -1,
+                                offset_y: 0,
+                            });
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 1, offset_y: 0 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 1,
+                                offset_y: 0,
+                            });
 
-                        commands.spawn(SpriteBundle {
-                            texture: images.spot.clone(),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                        commands
+                            .spawn(SpriteBundle {
+                                texture: images.spot.clone(),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                    ..default()
+                                },
+                                transform: Transform::from_xyz(0.0, 0.0, 1.0),
                                 ..default()
-                            },
-                            transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                            ..default()
-                        }).insert(BuildingGhost::Spot { offset_x: 0, offset_y: -1 });
+                            })
+                            .insert(BuildingGhost::Spot {
+                                offset_x: 0,
+                                offset_y: -1,
+                            });
                     }
                 }
 
-                commands.entity(entity)
-                    .insert(Animator::new(Tween::new(
-                        EaseFunction::CubicOut,
-                        Duration::from_secs_f32(0.2),
-                        UiPositionLens {
-                            start: UiRect::bottom(Val::Px(8.0)),
-                            end: UiRect::bottom(Val::Px(0.0)),
-                        }
-                    )));
+                commands.entity(entity).insert(Animator::new(Tween::new(
+                    EaseFunction::CubicOut,
+                    Duration::from_secs_f32(0.2),
+                    UiPositionLens {
+                        start: UiRect::bottom(Val::Px(8.0)),
+                        end: UiRect::bottom(Val::Px(0.0)),
+                    },
+                )));
             }
 
             Interaction::Hovered => {
-                commands.entity(entity)
-                    .insert(Animator::new(Tween::new(
-                        EaseFunction::CubicOut,
-                        Duration::from_secs_f32(0.2),
-                        UiPositionLens {
-                            start: UiRect::bottom(Val::Px(0.0)),
-                            end: UiRect::bottom(Val::Px(8.0)),
-                        }
-                    )));
+                commands.entity(entity).insert(Animator::new(Tween::new(
+                    EaseFunction::CubicOut,
+                    Duration::from_secs_f32(0.2),
+                    UiPositionLens {
+                        start: UiRect::bottom(Val::Px(0.0)),
+                        end: UiRect::bottom(Val::Px(8.0)),
+                    },
+                )));
             }
 
             Interaction::None => {
-                commands.entity(entity)
-                    .insert(Animator::new(Tween::new(
-                        EaseFunction::CubicOut,
-                        Duration::from_secs_f32(0.2),
-                        UiPositionLens {
-                            start: UiRect::bottom(Val::Px(8.0)),
-                            end: UiRect::bottom(Val::Px(0.0)),
-                        }
-                    )));
+                commands.entity(entity).insert(Animator::new(Tween::new(
+                    EaseFunction::CubicOut,
+                    Duration::from_secs_f32(0.2),
+                    UiPositionLens {
+                        start: UiRect::bottom(Val::Px(8.0)),
+                        end: UiRect::bottom(Val::Px(0.0)),
+                    },
+                )));
             }
         }
     }
 }
 
-pub fn drag_ghosts(tile_tracked_entities: Res<TileTrackedEntities>,
-                   mut ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
-                   mut world_mouse_events: EventReader<WorldMouseEvent>) {
+pub fn drag_ghosts(
+    mut ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
+    mut world_mouse_events: EventReader<WorldMouseEvent>,
+) {
     let mut hover_position = None;
 
     for event in world_mouse_events.iter() {
@@ -905,22 +1081,34 @@ pub fn drag_ghosts(tile_tracked_entities: Res<TileTrackedEntities>,
     for (_, mut transform, ghost) in ghosts.iter_mut() {
         match ghost {
             BuildingGhost::Machine(_) => {
-                transform.translation = hover_tile.to_world().add(Vec2::splat(32.0 * 4.0)).extend(0.0);
+                transform.translation = hover_tile
+                    .to_world()
+                    .add(Vec2::splat(32.0 * 4.0))
+                    .extend(0.0);
             }
 
             BuildingGhost::Spot { offset_x, offset_y } => {
-                transform.translation = hover_tile.offset(*offset_x, *offset_y).to_world().add(Vec2::splat(32.0 * 4.0)).extend(0.0);
+                transform.translation = hover_tile
+                    .offset(*offset_x, *offset_y)
+                    .to_world()
+                    .add(Vec2::splat(32.0 * 4.0))
+                    .extend(0.0);
             }
         }
     }
 }
 
-pub fn place_ghosts(mut commands: Commands,
-                    tile_tracked_entities: Res<TileTrackedEntities>,
-                    mut ghosts: Query<(Entity, &mut Transform, &mut Sprite, &BuildingGhost), Without<PlacedMachine>>,
-                    placed_machines: Query<(&Transform, &PlacedMachine), Without<BuildingGhost>>,
-                    placed_spots: Query<(&Transform, &Spot), (Without<PlacedMachine>, Without<BuildingGhost>)>,
-                    mut world_mouse_events: EventReader<WorldMouseEvent>) {
+pub fn place_ghosts(
+    mut commands: Commands,
+    tile_tracked_entities: Res<TileTrackedEntities>,
+    mut ghosts: Query<
+        (Entity, &mut Transform, &mut Sprite, &BuildingGhost),
+        Without<PlacedMachine>,
+    >,
+    placed_machines: Query<(&Transform, &PlacedMachine), Without<BuildingGhost>>,
+    placed_spots: Query<(&Transform, &Spot), (Without<PlacedMachine>, Without<BuildingGhost>)>,
+    mut world_mouse_events: EventReader<WorldMouseEvent>,
+) {
     let mut clicked = false;
 
     for event in world_mouse_events.iter() {
@@ -929,7 +1117,7 @@ pub fn place_ghosts(mut commands: Commands,
                 clicked = true;
             }
 
-            _ => ()
+            _ => (),
         }
     }
 
@@ -946,10 +1134,11 @@ pub fn place_ghosts(mut commands: Commands,
             match ghost {
                 BuildingGhost::Spot { .. } => (),
 
-                BuildingGhost::Machine( .. ) => {
+                BuildingGhost::Machine(..) => {
                     for &entity in tile_entities {
                         if let Ok((machine_transform, _)) = placed_machines.get(entity) {
-                            let machine_tile = TilePosition::from_world(machine_transform.translation.truncate());
+                            let machine_tile =
+                                TilePosition::from_world(machine_transform.translation.truncate());
 
                             if machine_tile == tile {
                                 can_place = false;
@@ -974,7 +1163,8 @@ pub fn place_ghosts(mut commands: Commands,
                 if let Some(tile_entities) = tile_tracked_entities.get_entities_in_tile(tile) {
                     for &tile_entity in tile_entities {
                         if let Ok((machine_transform, _)) = placed_machines.get(tile_entity) {
-                            let machine_tile = TilePosition::from_world(machine_transform.translation.truncate());
+                            let machine_tile =
+                                TilePosition::from_world(machine_transform.translation.truncate());
 
                             if machine_tile == tile {
                                 commands.entity(entity).despawn_recursive();
@@ -986,7 +1176,8 @@ pub fn place_ghosts(mut commands: Commands,
 
                 if !despawned {
                     sprite.color = Color::WHITE;
-                    commands.entity(entity)
+                    commands
+                        .entity(entity)
                         .remove::<BuildingGhost>()
                         .insert(Spot)
                         .insert(TileTrackedEntity);
@@ -1000,7 +1191,8 @@ pub fn place_ghosts(mut commands: Commands,
                 if let Some(tile_entities) = tile_tracked_entities.get_entities_in_tile(tile) {
                     for &tile_entity in tile_entities {
                         if let Ok((spot_transform, _)) = placed_spots.get(tile_entity) {
-                            let spot_tile = TilePosition::from_world(spot_transform.translation.truncate());
+                            let spot_tile =
+                                TilePosition::from_world(spot_transform.translation.truncate());
 
                             if spot_tile == tile {
                                 commands.entity(tile_entity).despawn_recursive();
@@ -1010,7 +1202,8 @@ pub fn place_ghosts(mut commands: Commands,
                 }
 
                 sprite.color = Color::WHITE;
-                commands.entity(entity)
+                commands
+                    .entity(entity)
                     .remove::<BuildingGhost>()
                     .insert(PlacedMachine {
                         machine: *machine,
@@ -1028,10 +1221,10 @@ pub fn act_machines(
     fonts: Res<Fonts>,
     images: Res<Images>,
     mut machines: Query<(&Transform, &mut PlacedMachine)>,
-    mut coins: Query<(&Coin, &Money), Without<PlacedMachine>>,
+    coins: Query<(&Coin, &Money), Without<PlacedMachine>>,
     tile_tracked_entities: Res<TileTrackedEntities>,
     time: Res<Time>,
-    mut coin_pickups: EventWriter<CoinPickup>
+    mut coin_pickups: EventWriter<CoinPickup>,
 ) {
     let find_coin = |tile_pos: TilePosition| -> Option<(Entity, &Coin, &Money)> {
         if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile_pos) {
@@ -1052,8 +1245,17 @@ pub fn act_machines(
     let mut spew_coin = |position: Vec2, value: u128, angle: f32| {
         let spread = PI / 4.0;
         let speed = 80.0 + 30.0 * rand::random::<f32>();
-        let velocity = Vec2::from_angle(rand::random::<f32>() * spread - spread / 2.0 + angle) * speed;
-        spawn_coin(&mut commands, &fonts, &images, value, position, velocity, 0.6);
+        let velocity =
+            Vec2::from_angle(rand::random::<f32>() * spread - spread / 2.0 + angle) * speed;
+        spawn_coin(
+            &mut commands,
+            &fonts,
+            &images,
+            value,
+            position,
+            velocity,
+            0.6,
+        );
     };
 
     for (transform, mut placed_machine) in machines.iter_mut() {
@@ -1069,7 +1271,7 @@ pub fn act_machines(
                 }
 
                 Machine::Collector => {
-                    if let Some((entity, coin, _)) = find_coin(tile_pos.offset(0, 1)) {
+                    if let Some((entity, _coin, _)) = find_coin(tile_pos.offset(0, 1)) {
                         coin_pickups.send(CoinPickup {
                             coin: entity,
                             target: position,
@@ -1079,11 +1281,14 @@ pub fn act_machines(
                 }
 
                 Machine::Adder => {
-                    let mut coin_left = find_coin(tile_pos.offset(-1, 0));
-                    let mut coin_right = find_coin(tile_pos.offset(1, 0));
+                    let coin_left = find_coin(tile_pos.offset(-1, 0));
+                    let coin_right = find_coin(tile_pos.offset(1, 0));
 
                     match (coin_left, coin_right) {
-                        (Some((entity_left, coin_left, money_left)), Some((entity_right, coin_right, money_right))) => {
+                        (
+                            Some((entity_left, _coin_left, money_left)),
+                            Some((entity_right, _coin_right, money_right)),
+                        ) => {
                             coin_pickups.send(CoinPickup {
                                 coin: entity_left,
                                 target: position,
@@ -1098,12 +1303,13 @@ pub fn act_machines(
                             spew_coin(position, money_left.0 + money_right.0, -PI / 2.0);
                         }
 
-                        _ => ()
+                        _ => (),
                     }
                 }
 
                 Machine::ConveyorUp => {
-                    let coin_stuff = find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(0, -1)));
+                    let coin_stuff =
+                        find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(0, -1)));
 
                     if let Some((entity, _, money)) = coin_stuff {
                         coin_pickups.send(CoinPickup {
@@ -1116,7 +1322,8 @@ pub fn act_machines(
                 }
 
                 Machine::ConveyorDown => {
-                    let coin_stuff = find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(0, 1)));
+                    let coin_stuff =
+                        find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(0, 1)));
 
                     if let Some((entity, _, money)) = coin_stuff {
                         coin_pickups.send(CoinPickup {
@@ -1129,7 +1336,8 @@ pub fn act_machines(
                 }
 
                 Machine::ConveyorLeft => {
-                    let coin_stuff = find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(1, 0)));
+                    let coin_stuff =
+                        find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(1, 0)));
 
                     if let Some((entity, _, money)) = coin_stuff {
                         coin_pickups.send(CoinPickup {
@@ -1142,7 +1350,8 @@ pub fn act_machines(
                 }
 
                 Machine::ConveyorRight => {
-                    let coin_stuff = find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(-1, 0)));
+                    let coin_stuff =
+                        find_coin(tile_pos).or_else(|| find_coin(tile_pos.offset(-1, 0)));
 
                     if let Some((entity, _, money)) = coin_stuff {
                         coin_pickups.send(CoinPickup {
@@ -1155,11 +1364,14 @@ pub fn act_machines(
                 }
 
                 Machine::Multiplier => {
-                    let mut coin_left = find_coin(tile_pos.offset(-1, 0));
-                    let mut coin_right = find_coin(tile_pos.offset(1, 0));
+                    let coin_left = find_coin(tile_pos.offset(-1, 0));
+                    let coin_right = find_coin(tile_pos.offset(1, 0));
 
                     match (coin_left, coin_right) {
-                        (Some((entity_left, coin_left, money_left)), Some((entity_right, coin_right, money_right))) => {
+                        (
+                            Some((entity_left, _coin_left, money_left)),
+                            Some((entity_right, _coin_right, money_right)),
+                        ) => {
                             coin_pickups.send(CoinPickup {
                                 coin: entity_left,
                                 target: position,
@@ -1174,7 +1386,7 @@ pub fn act_machines(
                             spew_coin(position, money_left.0 * money_right.0, -PI / 2.0);
                         }
 
-                        _ => ()
+                        _ => (),
                     }
                 }
             }
@@ -1182,11 +1394,13 @@ pub fn act_machines(
     }
 }
 
-pub fn destroy_machines(mut commands: Commands,
-                        mut world_mouse_events: EventReader<WorldMouseEvent>,
-                        machines: Query<&PlacedMachine, Without<Spot>>,
-                        spots: Query<&Spot, Without<PlacedMachine>>,
-                        tile_tracked_entities: Res<TileTrackedEntities>) {
+pub fn destroy_machines(
+    mut commands: Commands,
+    mut world_mouse_events: EventReader<WorldMouseEvent>,
+    machines: Query<&PlacedMachine, Without<Spot>>,
+    spots: Query<&Spot, Without<PlacedMachine>>,
+    tile_tracked_entities: Res<TileTrackedEntities>,
+) {
     let try_despawn_spot = |tile_pos: TilePosition, commands: &mut Commands| {
         if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile_pos) {
             for &entity in entities {
@@ -1209,8 +1423,12 @@ pub fn destroy_machines(mut commands: Commands,
                             commands.entity(machine_entity).despawn_recursive();
 
                             match machine.machine {
-                                Machine::Miner => try_despawn_spot(tile_pos.offset(0, -1), &mut commands),
-                                Machine::Collector => try_despawn_spot(tile_pos.offset(0, 1), &mut commands),
+                                Machine::Miner => {
+                                    try_despawn_spot(tile_pos.offset(0, -1), &mut commands)
+                                }
+                                Machine::Collector => {
+                                    try_despawn_spot(tile_pos.offset(0, 1), &mut commands)
+                                }
                                 Machine::ConveyorUp => {
                                     try_despawn_spot(tile_pos.offset(0, 1), &mut commands);
                                     try_despawn_spot(tile_pos.offset(0, -1), &mut commands);
@@ -1243,7 +1461,7 @@ pub fn destroy_machines(mut commands: Commands,
                 }
             }
 
-            _ => ()
+            _ => (),
         }
     }
 }

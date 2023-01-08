@@ -20,6 +20,7 @@ features = [
     "bevy_winit",
     "png",
     "x11",
+    "wayland",
     "filesystem_watcher",
 ]
 
@@ -40,6 +41,7 @@ bevy_asset_loader = { version = "0.14", features = ["stageless"] }
 # Native dependencies
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 bevy-inspector-egui = "0.16"
+bevy_egui = "0.18"
 
 # Wasm dependencies
 [target.'cfg(target_arch = "wasm32")'.dependencies]

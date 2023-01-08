@@ -1,7 +1,6 @@
 use bevy::prelude::*;
-use bevy::render::texture::{CompressedImageFormats, ImageType};
 use bevy_asset_loader::prelude::*;
-use bevy_ninepatch::{NinePatch, NinePatchBuilder};
+use bevy_ninepatch::NinePatchBuilder;
 
 #[derive(Resource, AssetCollection)]
 pub struct Images {
@@ -37,8 +36,7 @@ pub struct Images {
 
 #[derive(Resource, AssetCollection)]
 pub struct Fonts {
-    // Folders don't work well with Windows, bevy_embedded_assets and Wasm
-    #[asset(path = "VarelaRound-Regular.ttf")]
+    #[asset(path = "VarelaRound/VarelaRound-Regular.ttf")]
     pub varela: Handle<Font>,
 }
 
@@ -56,11 +54,7 @@ impl FromWorld for NinePatches {
             .unwrap();
 
         let mut make_uniform = |margin: u32| {
-            ninepatches.add(NinePatchBuilder::by_margins(
-                margin,
-                margin,
-                margin,
-                margin))
+            ninepatches.add(NinePatchBuilder::by_margins(margin, margin, margin, margin))
         };
 
         NinePatches {

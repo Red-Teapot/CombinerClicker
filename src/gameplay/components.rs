@@ -1,8 +1,8 @@
-use std::time::Duration;
+use crate::assets::Images;
 use bevy::math::vec2;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use crate::assets::Images;
+use std::time::Duration;
 
 #[derive(Component, Copy, Clone)]
 pub enum Machine {
@@ -20,7 +20,16 @@ impl Machine {
     pub fn list() -> &'static [Machine] {
         use crate::gameplay::components::Machine::*;
 
-        &[Miner, Collector, ConveyorUp, ConveyorDown, ConveyorLeft, ConveyorRight, Adder, Multiplier]
+        &[
+            Miner,
+            Collector,
+            ConveyorUp,
+            ConveyorDown,
+            ConveyorLeft,
+            ConveyorRight,
+            Adder,
+            Multiplier,
+        ]
     }
 
     pub fn cost(&self) -> u128 {
@@ -141,18 +150,10 @@ pub enum WorldMouseState {
 }
 
 pub enum WorldMouseEvent {
-    LeftClick {
-        position: Vec2,
-    },
-    RightClick {
-        position: Vec2,
-    },
-    Hover {
-        position: Vec2,
-    },
-    Drag {
-        offset: Vec2,
-    }
+    LeftClick { position: Vec2 },
+    RightClick { position: Vec2 },
+    Hover { position: Vec2 },
+    Drag { offset: Vec2 },
 }
 
 #[derive(Component)]
@@ -168,10 +169,7 @@ impl TilePosition {
     const TILE_SIZE: f32 = 64.0 * 4.0;
 
     pub fn new(x: i32, y: i32) -> TilePosition {
-        TilePosition {
-            x,
-            y,
-        }
+        TilePosition { x, y }
     }
 
     pub fn from_world(position: Vec2) -> TilePosition {
@@ -182,7 +180,10 @@ impl TilePosition {
     }
 
     pub fn to_world(&self) -> Vec2 {
-        vec2((self.x as f32) * Self::TILE_SIZE, (self.y as f32) * Self::TILE_SIZE)
+        vec2(
+            (self.x as f32) * Self::TILE_SIZE,
+            (self.y as f32) * Self::TILE_SIZE,
+        )
     }
 
     pub fn offset(&self, x: i32, y: i32) -> TilePosition {
@@ -215,7 +216,7 @@ impl TileTrackedEntities {
         if let Some(vec) = self.get_entities_in_tile_mut(tile_pos) {
             vec.push(entity);
         } else {
-            self.map.insert(tile_pos, vec!(entity));
+            self.map.insert(tile_pos, vec![entity]);
         }
     }
 
@@ -230,10 +231,7 @@ impl TileTrackedEntities {
 
 #[derive(Component)]
 pub enum BuildingGhost {
-    Spot {
-        offset_x: i32,
-        offset_y: i32,
-    },
+    Spot { offset_x: i32, offset_y: i32 },
     Machine(Machine),
 }
 
