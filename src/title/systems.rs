@@ -62,8 +62,8 @@ pub fn startup_title(mut commands: Commands, ui_fonts: Res<Fonts>) {
                         EaseFunction::QuadraticInOut,
                         Duration::from_secs(1),
                         UiPositionLens {
-                            start: UiRect::top(Val::Px(-10.0)),
-                            end: UiRect::top(Val::Px(10.0)),
+                            start: UiRect::top(Val::Px(-20.0)),
+                            end: UiRect::top(Val::Px(20.0)),
                         },
                     )
                     .with_repeat_strategy(RepeatStrategy::MirroredRepeat)

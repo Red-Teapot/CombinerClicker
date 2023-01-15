@@ -134,13 +134,13 @@ pub fn startup_gameplay(
             let bottom_panel_content = window
                 .spawn(NodeBundle {
                     style: Style {
-                        align_items: AlignItems::FlexStart,
+                        align_items: AlignItems::FlexEnd,
                         justify_content: JustifyContent::Center,
                         min_size: Size {
-                            height: Val::Px(192.0),
+                            height: Val::Px(208.0),
                             ..default()
                         },
-                        padding: UiRect::all(Val::Px(-8.0)),
+                        padding: UiRect::new(Val::Px(-8.0), Val::Px(-8.0), Val::Px(-8.0), Val::Px(64.0)),
                         ..default()
                     },
                     focus_policy: FocusPolicy::Pass,
@@ -154,6 +154,10 @@ pub fn startup_gameplay(
                                     flex_direction: FlexDirection::Column,
                                     padding: UiRect::all(Val::Px(8.0)),
                                     align_items: AlignItems::Center,
+                                    size: Size {
+                                        width: Val::Px(90.0),
+                                        height: Val::Undefined,
+                                    },
                                     ..default()
                                 },
                                 background_color: Color::NONE.into(),
@@ -169,11 +173,15 @@ pub fn startup_gameplay(
                                                 color: palette::LIGHT_BROWN,
                                                 font_size: 20.0,
                                             },
-                                        ),
+                                        ).with_alignment(TextAlignment::BOTTOM_CENTER),
                                         style: Style {
                                             margin: UiRect {
                                                 bottom: Val::Px(4.0),
                                                 ..default()
+                                            },
+                                            max_size: Size {
+                                                width: Val::Px(90.0),
+                                                height: default(),
                                             },
                                             ..default()
                                         },
