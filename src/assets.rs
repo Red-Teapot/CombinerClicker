@@ -36,7 +36,7 @@ pub struct Images {
 
 #[derive(Resource, AssetCollection)]
 pub struct Fonts {
-    #[asset(path = "VarelaRound/VarelaRound-Regular.ttf")]
+    #[asset(path = "varela-round/VarelaRound-Regular.ttf")]
     pub varela: Handle<Font>,
 }
 

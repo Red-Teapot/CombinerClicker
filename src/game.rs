@@ -3,8 +3,10 @@ use bevy_asset_loader::prelude::*;
 use bevy_embedded_assets::EmbeddedAssetPlugin;
 use bevy_kira_audio::AudioPlugin;
 use bevy_ninepatch::NinePatchPlugin;
-use bevy_tweening::TweeningPlugin;
+use bevy_tweening::{component_animator_system, TweeningPlugin};
 use iyes_loopless::prelude::*;
+use kayak_ui::prelude::{KStyle, KayakContextPlugin};
+use kayak_ui::widgets::KayakWidgets;
 
 use crate::assets::*;
 use crate::gameplay::components::{CoinPickup, WorldMouseEvent};
@@ -16,6 +18,7 @@ pub mod assets;
 pub mod gameplay;
 pub mod palette;
 pub mod title;
+pub mod utils;
 
 pub fn run(app: &mut App) {
     app.add_plugins(
@@ -33,6 +36,9 @@ pub fn run(app: &mut App) {
     .add_plugin(AudioPlugin)
     .add_plugin(NinePatchPlugin::<()>::default())
     .add_plugin(TweeningPlugin)
+    .add_plugin(KayakContextPlugin)
+    .add_plugin(KayakWidgets)
+    .add_system(component_animator_system::<KStyle>)
     .insert_resource(InputHandlingBehavior {
         can_use_mouse: true,
         can_use_keyboard: true,

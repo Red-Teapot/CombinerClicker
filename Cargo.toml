@@ -1,6 +1,6 @@
 [package]
 name = "one-clicker"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 
 [lib]
@@ -37,6 +37,7 @@ bevy_ninepatch = "0.9"
 iyes_loopless = "0.9"
 bevy_embedded_assets = "0.6"
 bevy_asset_loader = { version = "0.14", features = ["stageless"] }
+kayak_ui = "0.2"
 
 # Native dependencies
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
