@@ -14,6 +14,7 @@ use crate::gameplay::components::*;
 use crate::palette;
 
 use super::input::WorldMouseEvent;
+use super::tile_tracked_entities::{TileTrackedEntity, TileTrackedEntities, TilePosition};
 
 pub fn startup_gameplay(
     mut commands: Commands,
@@ -257,17 +258,6 @@ pub fn startup_gameplay(
                     },
                 )));
         });
-}
-
-pub fn track_tile_entities(
-    entities: Query<(Entity, &GlobalTransform), With<TileTrackedEntity>>,
-    mut tracked_entities: ResMut<TileTrackedEntities>,
-) {
-    tracked_entities.clear();
-
-    for (entity, transform) in entities.iter() {
-        tracked_entities.add(transform.translation().truncate(), entity);
-    }
 }
 
 pub fn move_particles(mut particles: Query<(&mut Transform, &mut Particle)>) {

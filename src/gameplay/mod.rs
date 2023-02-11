@@ -9,6 +9,7 @@ pub mod components;
 pub mod systems;
 
 pub mod input;
+pub mod tile_tracked_entities;
 pub mod machines;
 
 pub struct GameplayPlugin;
@@ -34,7 +35,7 @@ impl Plugin for GameplayPlugin {
                 .run_in_state(GameState::Gameplay)
                 .label(GameSystemLabel::PreUpdate)
                 .before(GameSystemLabel::Update)
-                .with_system(systems::track_tile_entities)
+                .with_system(tile_tracked_entities::track_tile_entities)
                 .into(),
         )
         .add_system_set(
