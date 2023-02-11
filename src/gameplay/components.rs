@@ -2,8 +2,23 @@ use bevy::prelude::*;
 
 use super::machines::Machine;
 
-#[derive(Component, Resource)]
-pub struct Money(pub u128);
+pub type Currency = u128;
+
+#[derive(Resource)]
+pub struct Balance {
+    pub money: Currency,
+}
+
+impl Default for Balance {
+    fn default() -> Self {
+        Self { 
+            money: 0,
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Money(pub Currency);
 
 #[derive(Component)]
 pub struct Particle {

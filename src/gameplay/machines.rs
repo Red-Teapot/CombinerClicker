@@ -5,7 +5,7 @@ use std::{f32::consts::PI, time::Duration};
 use crate::assets::{Fonts, Images};
 
 use super::{
-    components::{Coin, CoinPickup, Money, NextCoinDepth, Spot},
+    components::{Coin, CoinPickup, Money, NextCoinDepth, Spot, Currency},
     input::WorldMouseEvent,
     systems::spawn_coin,
     tile_tracked_entities::{TilePosition, TileTrackedEntities},
@@ -44,7 +44,7 @@ pub fn act_machines(
                 return None;
             };
 
-            let mut spew_coin = |position: Vec2, value: u128, angle: f32| {
+            let mut spew_coin = |position: Vec2, value: Currency, angle: f32| {
                 let spread = PI / 4.0;
                 let speed = 80.0 + 30.0 * rand::random::<f32>();
                 let velocity =
@@ -307,7 +307,7 @@ impl Machine {
         ]
     }
 
-    pub fn cost(&self) -> u128 {
+    pub fn cost(&self) -> Currency {
         use Machine::*;
 
         match self {

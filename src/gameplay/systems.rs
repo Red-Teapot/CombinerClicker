@@ -27,7 +27,7 @@ pub fn startup_gameplay(
 ) {
     camera.single_mut().scale = vec3(4.0, 4.0, 1.0);
 
-    commands.insert_resource(Money(0));
+    commands.insert_resource(Balance::default());
 
     commands.insert_resource(NextCoinDepth {
         depth: 0.1,
@@ -222,10 +222,7 @@ pub fn startup_gameplay(
                                     ..default()
                                 });
                             })
-                            .insert(MachineBuyButton {
-                                enabled: false,
-                                machine: *machine,
-                            });
+                            .insert(MachineBuyButton::new(*machine));
                     }
                 })
                 .insert(Name::new("Bottom Panel Content"))
@@ -275,7 +272,7 @@ pub fn spawn_coin(
     depth: &mut ResMut<NextCoinDepth>,
     fonts: &Res<Fonts>,
     game_images: &Res<Images>,
-    value: u128,
+    value: Currency,
     position: Vec2,
     velocity: Vec2,
     damping: f32,
@@ -371,7 +368,7 @@ pub fn update_coins(
     mut commands: Commands,
     mut coins: Query<(Entity, &Transform, &mut Coin, &Money)>,
     time: Res<Time>,
-    mut money: ResMut<Money>,
+    mut wallet: ResMut<Balance>,
     mut coin_pickup_events: EventReader<CoinPickup>,
 ) {
     for event in coin_pickup_events.iter() {
@@ -418,7 +415,7 @@ pub fn update_coins(
 
         if coin.despawn_timer.just_finished() {
             if coin.has_money {
-                money.0 += coin_money.0;
+                wallet.money += coin_money.0;
             }
 
             commands.entity(entity).despawn_recursive();

@@ -110,6 +110,7 @@ enum GameSystemLabel {
     InputHandling,
     PreUpdate,
     Update,
+    PostUpdate,
 }
 
 #[derive(Component)]
