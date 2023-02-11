@@ -140,7 +140,12 @@ pub fn startup_gameplay(
                             height: Val::Px(208.0),
                             ..default()
                         },
-                        padding: UiRect::new(Val::Px(-8.0), Val::Px(-8.0), Val::Px(-8.0), Val::Px(64.0)),
+                        padding: UiRect::new(
+                            Val::Px(-8.0),
+                            Val::Px(-8.0),
+                            Val::Px(-8.0),
+                            Val::Px(64.0),
+                        ),
                         ..default()
                     },
                     focus_policy: FocusPolicy::Pass,
@@ -173,7 +178,8 @@ pub fn startup_gameplay(
                                                 color: palette::LIGHT_BROWN,
                                                 font_size: 20.0,
                                             },
-                                        ).with_alignment(TextAlignment::BOTTOM_CENTER),
+                                        )
+                                        .with_alignment(TextAlignment::BOTTOM_CENTER),
                                         style: Style {
                                             margin: UiRect {
                                                 bottom: Val::Px(4.0),

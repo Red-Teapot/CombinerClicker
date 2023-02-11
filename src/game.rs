@@ -13,6 +13,7 @@ use crate::gameplay::components::{CoinPickup, WorldMouseEvent};
 mod web_main;
 
 pub mod assets;
+pub mod common;
 pub mod gameplay;
 pub mod palette;
 pub mod title;
@@ -145,6 +146,9 @@ impl Plugin for GamePlugin {
         );
 
         // Keyboard input (TODO)
+
+        // Common systems
+        app.add_system(common::systems::update_delayed_despawn);
 
         // Gameplay
         app.add_system_set(

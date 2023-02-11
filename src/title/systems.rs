@@ -1,6 +1,7 @@
 use super::components::*;
 use super::*;
 use crate::assets::*;
+use crate::common::components::DelayedDespawn;
 use crate::{palette, BackgroundInteraction, GameState};
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
@@ -120,51 +121,33 @@ pub fn handle_title_click(
     mut commands: Commands,
     interactions: Query<&Interaction, With<BackgroundInteraction>>,
     hints: Query<Entity, With<TitleHint>>,
-    fade_out: Option<ResMut<TitleFadeOut>>,
-    time: Res<Time>,
 ) {
     for interaction in interactions.iter() {
         match interaction {
-            Interaction::Clicked if fade_out.is_none() => {
+            Interaction::Clicked => {
                 let fade_out_time = Duration::from_secs_f32(FADE_OUT_TIME);
-
-                commands.insert_resource(TitleFadeOut {
-                    timer: Timer::new(fade_out_time, TimerMode::Once),
-                });
 
                 for hint in hints.iter() {
                     let mut hint_commands = commands.entity(hint);
 
-                    hint_commands.insert(Animator::new(Tween::new(
-                        EaseFunction::CubicOut,
-                        fade_out_time,
-                        UiPositionLens {
-                            start: UiRect::left(Val::Percent(0.0)),
-                            end: UiRect::left(Val::Percent(-100.0)),
-                        },
-                    )));
+                    hint_commands
+                        .insert(Animator::new(Tween::new(
+                            EaseFunction::CubicOut,
+                            fade_out_time,
+                            UiPositionLens {
+                                start: UiRect::left(Val::Percent(0.0)),
+                                end: UiRect::left(Val::Percent(-100.0)),
+                            },
+                        )))
+                        .insert(DelayedDespawn::with_children(fade_out_time));
                 }
+
+                commands.insert_resource(NextState(GameState::Gameplay));
+
+                break;
             }
 
             _ => (),
         }
-    }
-
-    match fade_out {
-        Some(mut fade_out) => {
-            let timer = &mut fade_out.timer;
-            timer.tick(time.delta());
-
-            if timer.finished() {
-                commands.remove_resource::<TitleFadeOut>();
-
-                for hint in hints.iter() {
-                    commands.entity(hint).despawn_recursive();
-                }
-
-                commands.insert_resource(NextState(GameState::Gameplay));
-            }
-        }
-        None => (),
     }
 }
