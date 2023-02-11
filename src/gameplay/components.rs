@@ -143,26 +143,6 @@ impl Coin {
     }
 }
 
-#[derive(Copy, Clone, Resource)]
-pub enum WorldMouseState {
-    None,
-    Pressed {
-        time: f64,
-        position_window: Vec2,
-        position_world: Vec2,
-    },
-    Dragging {
-        last_position: Vec2,
-    },
-}
-
-pub enum WorldMouseEvent {
-    LeftClick { position: Vec2 },
-    RightClick { position: Vec2 },
-    Hover { position: Vec2 },
-    Drag { offset: Vec2 },
-}
-
 #[derive(Component)]
 pub struct TileTrackedEntity;
 
