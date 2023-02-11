@@ -1,4 +1,4 @@
-use bevy::{prelude::*, math::vec2, utils::HashMap};
+use bevy::{math::vec2, prelude::*, utils::HashMap};
 
 pub fn track_tile_entities(
     entities: Query<(Entity, &GlobalTransform), With<TileTrackedEntity>>,

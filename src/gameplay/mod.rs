@@ -9,8 +9,8 @@ pub mod components;
 pub mod systems;
 
 pub mod input;
-pub mod tile_tracked_entities;
 pub mod machines;
+pub mod tile_tracked_entities;
 
 pub struct GameplayPlugin;
 
@@ -51,8 +51,8 @@ impl Plugin for GameplayPlugin {
                 .with_system(systems::handle_machine_buy_buttons)
                 .with_system(systems::drag_ghosts)
                 .with_system(systems::place_ghosts)
-                .with_system(systems::act_machines)
-                .with_system(systems::destroy_machines)
+                .with_system(machines::act_machines)
+                .with_system(machines::destroy_machines)
                 .into(),
         );
     }
