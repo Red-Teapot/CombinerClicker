@@ -3,11 +3,9 @@ use super::*;
 use crate::assets::*;
 use crate::common::components::DelayedDespawn;
 use crate::{palette, BackgroundInteraction, GameState};
-use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 use bevy_tweening::lens::UiPositionLens;
 use bevy_tweening::{Animator, EaseFunction, RepeatCount, RepeatStrategy, Tween};
-use iyes_loopless::prelude::*;
 use std::time::Duration;
 
 pub fn startup_title(mut commands: Commands, ui_fonts: Res<Fonts>) {

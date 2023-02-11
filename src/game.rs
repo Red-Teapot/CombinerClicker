@@ -7,7 +7,6 @@ use bevy_tweening::TweeningPlugin;
 use iyes_loopless::prelude::*;
 
 use crate::assets::*;
-use crate::gameplay::components::{CoinPickup, WorldMouseEvent};
 
 #[cfg(target_arch = "wasm32")]
 mod web_main;
@@ -66,6 +65,22 @@ pub fn run(app: &mut App) {
         .run();
 }
 
+struct GamePlugin;
+
+impl Plugin for GamePlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(ClearColor(palette::OFF_WHITE))
+            .add_startup_system(startup_game)
+            .add_loopless_state(GameState::Title)
+            .add_enter_system(GameState::Gameplay, gameplay::systems::startup_gameplay);
+
+        app.add_system(common::systems::update_delayed_despawn);
+
+        app.add_plugin(title::TitlePlugin)
+            .add_plugin(gameplay::GameplayPlugin);
+    }
+}
+
 pub fn startup_game(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 
@@ -110,71 +125,4 @@ pub enum GameState {
 pub struct InputHandlingBehavior {
     pub can_use_mouse: bool,
     pub can_use_keyboard: bool,
-}
-
-struct GamePlugin;
-
-impl Plugin for GamePlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(ClearColor(palette::OFF_WHITE))
-            .add_event::<WorldMouseEvent>()
-            .add_event::<CoinPickup>()
-            .add_startup_system(startup_game)
-            .add_loopless_state(GameState::Title)
-            .add_enter_system(GameState::Title, title::systems::startup_title)
-            .add_enter_system(GameState::Gameplay, gameplay::systems::startup_gameplay);
-
-        // Mouse input
-        app.add_system_set(
-            ConditionSet::new()
-                .label(GameSystemLabel::InputHandling)
-                .before(GameSystemLabel::PreUpdate)
-                .run_in_state(GameState::Title)
-                .run_if(can_use_mouse)
-                .with_system(title::systems::handle_title_click)
-                .into(),
-        )
-        .add_system_set(
-            ConditionSet::new()
-                .label(GameSystemLabel::InputHandling)
-                .before(GameSystemLabel::PreUpdate)
-                .run_if(can_use_mouse)
-                .run_in_state(GameState::Gameplay)
-                .with_system(gameplay::systems::handle_bg_input)
-                .with_system(gameplay::systems::zoom_camera)
-                .into(),
-        );
-
-        // Keyboard input (TODO)
-
-        // Common systems
-        app.add_system(common::systems::update_delayed_despawn);
-
-        // Gameplay
-        app.add_system_set(
-            ConditionSet::new()
-                .run_in_state(GameState::Gameplay)
-                .label(GameSystemLabel::PreUpdate)
-                .before(GameSystemLabel::Update)
-                .with_system(gameplay::systems::track_tile_entities)
-                .into(),
-        )
-        .add_system_set(
-            ConditionSet::new()
-                .run_in_state(GameState::Gameplay)
-                .label(GameSystemLabel::Update)
-                .with_system(gameplay::systems::drag_camera)
-                .with_system(gameplay::systems::click_coins)
-                .with_system(gameplay::systems::hover_coins)
-                .with_system(gameplay::systems::update_coins)
-                .with_system(gameplay::systems::move_particles)
-                .with_system(gameplay::systems::update_money)
-                .with_system(gameplay::systems::handle_machine_buy_buttons)
-                .with_system(gameplay::systems::drag_ghosts)
-                .with_system(gameplay::systems::place_ghosts)
-                .with_system(gameplay::systems::act_machines)
-                .with_system(gameplay::systems::destroy_machines)
-                .into(),
-        );
-    }
 }
