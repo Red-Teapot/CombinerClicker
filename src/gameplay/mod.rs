@@ -9,6 +9,7 @@ pub mod components;
 pub mod systems;
 
 pub mod input;
+pub mod hud;
 pub mod machines;
 pub mod tile_tracked_entities;
 
@@ -47,8 +48,8 @@ impl Plugin for GameplayPlugin {
                 .with_system(systems::hover_coins)
                 .with_system(systems::update_coins)
                 .with_system(systems::move_particles)
-                .with_system(systems::update_money)
-                .with_system(systems::handle_machine_buy_buttons)
+                .with_system(hud::update_money)
+                .with_system(hud::handle_machine_buy_buttons)
                 .with_system(systems::drag_ghosts)
                 .with_system(systems::place_ghosts)
                 .with_system(machines::act_machines)

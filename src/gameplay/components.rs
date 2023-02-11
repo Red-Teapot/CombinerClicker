@@ -6,21 +6,6 @@ use super::machines::Machine;
 pub struct Money(pub u128);
 
 #[derive(Component)]
-pub struct MoneyDisplay;
-
-#[derive(Component)]
-pub struct MachineIcon(pub Machine);
-
-#[derive(Component)]
-pub struct MachineName(pub Machine);
-
-#[derive(Component)]
-pub struct MachineBuyButton {
-    pub enabled: bool,
-    pub machine: Machine,
-}
-
-#[derive(Component)]
 pub struct Particle {
     pub velocity: Vec2,
     pub damping: f32,
