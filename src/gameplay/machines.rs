@@ -1,11 +1,14 @@
-use bevy::prelude::*;
+use bevy::{math::vec3, prelude::*};
 
 use std::{f32::consts::PI, time::Duration};
 
-use crate::assets::{Fonts, Images};
+use crate::{
+    assets::{Fonts, Images},
+    gameplay::TILE_SIZE,
+};
 
 use super::{
-    components::{Coin, CoinPickup, Money, NextCoinDepth, Spot, Currency},
+    components::{Coin, CoinPickup, Currency, Money, NextCoinDepth},
     input::WorldMouseEvent,
     systems::spawn_coin,
     tile_tracked_entities::{TilePosition, TileTrackedEntities},
@@ -207,7 +210,7 @@ pub fn act_machines(
     }
 }
 
-pub fn destroy_machines(
+/*pub fn destroy_machines(
     mut commands: Commands,
     mut world_mouse_events: EventReader<WorldMouseEvent>,
     machines: Query<&PlacedMachine, Without<Spot>>,
@@ -277,7 +280,7 @@ pub fn destroy_machines(
             _ => (),
         }
     }
-}
+}*/
 
 #[derive(Component, Copy, Clone)]
 pub enum Machine {
@@ -365,6 +368,63 @@ impl Machine {
             Adder => Duration::from_secs_f32(1.0),
             Multiplier => Duration::from_secs_f32(1.0),
         }
+    }
+
+    pub fn spawn_graphics(&self, commands: &mut Commands, images: &Images) -> Entity {
+        use Machine::*;
+
+        let (spot_up, spot_down, spot_left, spot_right) = match self {
+            Miner => (false, true, false, false),
+            Collector => (true, false, false, false),
+            ConveyorUp => (true, true, false, false),
+            ConveyorDown => (true, true, false, false),
+            ConveyorLeft => (false, false, true, true),
+            ConveyorRight => (false, false, true, true),
+            Adder => (false, true, true, true),
+            Multiplier => (false, true, true, true),
+        };
+
+        let half_tile = Vec2::splat(TILE_SIZE / 2.0).extend(0.0);
+
+        commands
+            .spawn(SpriteBundle {
+                texture: self.image(images),
+                ..default()
+            })
+            .with_children(|machine| {
+                if spot_up {
+                    machine.spawn(SpriteBundle {
+                        texture: images.spot.clone(),
+                        transform: Transform::from_translation(vec3(0.0, TILE_SIZE, 0.0)),
+                        ..default()
+                    });
+                }
+
+                if spot_down {
+                    machine.spawn(SpriteBundle {
+                        texture: images.spot.clone(),
+                        transform: Transform::from_translation(vec3(0.0, -TILE_SIZE, 0.0)),
+                        ..default()
+                    });
+                }
+
+                if spot_left {
+                    machine.spawn(SpriteBundle {
+                        texture: images.spot.clone(),
+                        transform: Transform::from_translation(vec3(-TILE_SIZE, 0.0, 0.0)),
+                        ..default()
+                    });
+                }
+
+                if spot_right {
+                    machine.spawn(SpriteBundle {
+                        texture: images.spot.clone(),
+                        transform: Transform::from_translation(vec3(TILE_SIZE, 0.0, 0.0)),
+                        ..default()
+                    });
+                }
+            })
+            .id()
     }
 }
 

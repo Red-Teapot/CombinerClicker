@@ -6,14 +6,12 @@ pub type Currency = u128;
 
 #[derive(Resource)]
 pub struct Balance {
-    pub money: Currency,
+    pub coins: Currency,
 }
 
 impl Default for Balance {
     fn default() -> Self {
-        Self { 
-            money: 0,
-        }
+        Self { coins: 0 }
     }
 }
 
@@ -51,12 +49,3 @@ impl Coin {
         self.alive && self.spawn_timer.finished() && self.despawn_timer.paused()
     }
 }
-
-#[derive(Component)]
-pub enum BuildingGhost {
-    Spot { offset_x: i32, offset_y: i32 },
-    Machine(Machine),
-}
-
-#[derive(Component)]
-pub struct Spot;

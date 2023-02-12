@@ -13,7 +13,7 @@ use crate::assets::*;
 use crate::gameplay::components::*;
 use crate::palette;
 
-use super::hud::{MoneyDisplay, MachineName, MachineIcon, MachineBuyButton};
+use super::hud::{MachineBuyButton, MachineIcon, MachineName, MoneyDisplay};
 use super::input::WorldMouseEvent;
 use super::machines::{Machine, PlacedMachine};
 use super::tile_tracked_entities::{TilePosition, TileTrackedEntities, TileTrackedEntity};
@@ -34,7 +34,7 @@ pub fn startup_gameplay(
         step: 0.00000001,
     });
 
-    commands.insert_resource(super::input::WorldMouseState::None);
+    commands.insert_resource(super::input::WorldMouse::default());
 
     commands.insert_resource(TileTrackedEntities::new());
 
@@ -332,16 +332,16 @@ pub fn spawn_coin(
 
 pub fn click_coins(
     mut commands: Commands,
-    ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
+    //ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
     fonts: Res<Fonts>,
     game_images: Res<Images>,
     mut depth: ResMut<NextCoinDepth>,
     mut world_mouse_events: EventReader<WorldMouseEvent>,
 ) {
-    if !ghosts.is_empty() {
+    /*if !ghosts.is_empty() {
         world_mouse_events.clear();
         return;
-    }
+    }*/
 
     for event in world_mouse_events.iter() {
         match event {
@@ -415,7 +415,7 @@ pub fn update_coins(
 
         if coin.despawn_timer.just_finished() {
             if coin.has_money {
-                wallet.money += coin_money.0;
+                wallet.coins += coin_money.0;
             }
 
             commands.entity(entity).despawn_recursive();
@@ -424,7 +424,7 @@ pub fn update_coins(
 }
 
 pub fn hover_coins(
-    coins: Query<(&Transform, &Coin), Without<BuildingGhost>>,
+    coins: Query<(&Transform, &Coin)>,
     mut world_mouse_events: EventReader<WorldMouseEvent>,
     tile_tracked_entities: ResMut<TileTrackedEntities>,
     mut coin_pickup_events: EventWriter<CoinPickup>,
@@ -469,7 +469,7 @@ pub fn hover_coins(
     }
 }
 
-pub fn drag_ghosts(
+/*pub fn drag_ghosts(
     mut ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
     mut world_mouse_events: EventReader<WorldMouseEvent>,
 ) {
@@ -505,9 +505,9 @@ pub fn drag_ghosts(
             }
         }
     }
-}
+}*/
 
-pub fn place_ghosts(
+/*pub fn place_ghosts(
     mut commands: Commands,
     tile_tracked_entities: Res<TileTrackedEntities>,
     mut ghosts: Query<
@@ -623,4 +623,4 @@ pub fn place_ghosts(
             }
         }
     }
-}
+}*/

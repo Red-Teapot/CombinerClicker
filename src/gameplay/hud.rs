@@ -1,13 +1,15 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
-use bevy_tweening::{*, lens::UiPositionLens};
+use bevy_tweening::{lens::{UiPositionLens, TransformPositionLens}, *};
 
 use crate::assets::Images;
 
-use super::{machines::Machine, components::{Balance}};
+use super::{
+    components::Balance, input::WorldMouse, machines::Machine, tile_tracked_entities::TilePosition, TILE_SIZE,
+};
 
-pub fn update_wallet(
+pub fn update_balance_display(
     wallet: Res<Balance>,
     ui_images: Res<Images>,
     game_images: Res<Images>,
@@ -21,16 +23,16 @@ pub fn update_wallet(
     }
 
     let mut text = money_display.single_mut();
-    text.sections[0].value = wallet.money.to_string();
+    text.sections[0].value = wallet.coins.to_string();
 
     for (mut text, MachineName(machine)) in machine_names.iter_mut() {
-        if wallet.money >= machine.cost() {
+        if wallet.coins >= machine.cost() {
             text.sections[0].value = machine.name().to_string();
         }
     }
 
     for (mut image, MachineIcon(machine)) in machine_icons.iter_mut() {
-        if wallet.money >= machine.cost() {
+        if wallet.coins >= machine.cost() {
             image.0 = machine.image(&game_images);
         } else {
             image.0 = ui_images.locked.clone();
@@ -38,7 +40,7 @@ pub fn update_wallet(
     }
 
     for mut button in machine_buy_buttons.iter_mut() {
-        button.enabled = wallet.money >= button.machine.cost();
+        button.enabled = wallet.coins >= button.machine.cost();
     }
 }
 
@@ -53,17 +55,15 @@ pub fn select_machine_button(
         }
 
         match interaction {
-            Interaction::Clicked if !button.selected && button.machine.cost() <= wallet.money => {
-                // TODO: Add the building ghost
+            Interaction::Clicked if !button.selected && button.machine.cost() <= wallet.coins => {
                 button_selected_events.send(MachineButtonSelectedEvent(Some(entity)));
             }
 
             Interaction::Clicked if button.selected => {
-                // TODO: Remove the building ghost
                 button_selected_events.send(MachineButtonSelectedEvent(None));
             }
 
-            _ => ()
+            _ => (),
         }
     }
 }
@@ -92,7 +92,7 @@ pub fn update_selected_machine_button(
                             end: UiRect::bottom(Val::Px(12.0)),
                         },
                     )));
-                },
+                }
 
                 _ => {
                     button.selected = false;
@@ -105,9 +105,51 @@ pub fn update_selected_machine_button(
                             end: UiRect::bottom(Val::Px(0.0)),
                         },
                     )));
-                },
+                }
             }
         }
+    }
+}
+
+pub fn show_hide_building_ghost(
+    mut commands: Commands,
+    mut button_selected_events: EventReader<MachineButtonSelectedEvent>,
+    buttons: Query<&MachineBuyButton>,
+    images: Res<Images>,
+    world_mouse: Res<WorldMouse>,
+    building_ghosts: Query<Entity, With<BuildingGhost>>,
+) {
+    for &MachineButtonSelectedEvent(selected_option) in button_selected_events.iter() {
+        for ghost_entity in building_ghosts.iter() {
+            commands.entity(ghost_entity).despawn_recursive();
+        }
+        
+        if let Some(selected) = selected_option {
+            let button = buttons.get(selected).unwrap();
+
+            let ghost_entity = button.machine.spawn_graphics(&mut commands, &images);
+
+            commands
+                .entity(ghost_entity)
+                .insert(BuildingGhost {
+                    machine: button.machine,
+                })
+                .insert(Transform::from_translation(
+                    TilePosition::snap_world(world_mouse.position_world)
+                        .extend(0.0),
+                ));
+        }
+    }
+}
+
+pub fn drag_building_ghost(
+    world_mouse: Res<WorldMouse>,
+    mut building_ghosts: Query<&mut Transform, With<BuildingGhost>>,
+) {
+    let half_tile = Vec2::splat(TILE_SIZE / 2.0).extend(0.0);
+
+    for mut transform in building_ghosts.iter_mut() {
+        transform.translation = half_tile + TilePosition::snap_world(world_mouse.position_world).extend(0.0);
     }
 }
 
@@ -131,10 +173,15 @@ pub struct MachineBuyButton {
 
 impl MachineBuyButton {
     pub fn new(machine: Machine) -> MachineBuyButton {
-        MachineBuyButton { 
-            enabled: false, 
-            selected: false, 
-            machine, 
+        MachineBuyButton {
+            enabled: false,
+            selected: false,
+            machine,
         }
     }
+}
+
+#[derive(Component)]
+pub struct BuildingGhost {
+    machine: Machine,
 }

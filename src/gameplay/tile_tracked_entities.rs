@@ -1,5 +1,7 @@
 use bevy::{math::vec2, prelude::*, utils::HashMap};
 
+use super::TILE_SIZE;
+
 pub fn track_tile_entities(
     entities: Query<(Entity, &GlobalTransform), With<TileTrackedEntity>>,
     mut tracked_entities: ResMut<TileTrackedEntities>,
@@ -21,24 +23,19 @@ pub struct TilePosition {
 }
 
 impl TilePosition {
-    const TILE_SIZE: f32 = 64.0 * 4.0;
-
     pub fn new(x: i32, y: i32) -> TilePosition {
         TilePosition { x, y }
     }
 
     pub fn from_world(position: Vec2) -> TilePosition {
         TilePosition {
-            x: (position.x / Self::TILE_SIZE).floor() as i32,
-            y: (position.y / Self::TILE_SIZE).floor() as i32,
+            x: (position.x / TILE_SIZE).floor() as i32,
+            y: (position.y / TILE_SIZE).floor() as i32,
         }
     }
 
     pub fn to_world(&self) -> Vec2 {
-        vec2(
-            (self.x as f32) * Self::TILE_SIZE,
-            (self.y as f32) * Self::TILE_SIZE,
-        )
+        vec2((self.x as f32) * TILE_SIZE, (self.y as f32) * TILE_SIZE)
     }
 
     pub fn offset(&self, x: i32, y: i32) -> TilePosition {
@@ -46,6 +43,10 @@ impl TilePosition {
             x: self.x + x,
             y: self.y + y,
         }
+    }
+
+    pub fn snap_world(position: Vec2) -> Vec2 {
+        TilePosition::from_world(position).to_world()
     }
 }
 

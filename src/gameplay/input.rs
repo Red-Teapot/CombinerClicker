@@ -10,7 +10,7 @@ const CLICK_DURATION: f64 = 0.2;
 const CLICK_DISTANCE: f32 = 10.0;
 
 pub fn handle_bg_input(
-    mut world_mouse_state: ResMut<WorldMouseState>,
+    mut world_mouse: ResMut<WorldMouse>,
     time: Res<Time>,
     bg_inter: Query<&Interaction, With<BackgroundInteraction>>,
     camera: Query<(&Camera, &GlobalTransform)>,
@@ -51,11 +51,13 @@ pub fn handle_bg_input(
         world_pos
     };
 
+    world_mouse.position_world = cursor_position_world;
+
     for interaction in bg_inter.iter() {
         match interaction {
             Interaction::Clicked => {
                 if buttons.just_pressed(MouseButton::Left) {
-                    *world_mouse_state = WorldMouseState::Pressed {
+                    world_mouse.state = MouseState::Pressed {
                         time: time.elapsed_seconds_f64(),
                         position_window: cursor_position_window,
                         position_world: cursor_position_world,
@@ -70,18 +72,22 @@ pub fn handle_bg_input(
                     });
                 }
 
-                match *world_mouse_state {
-                    WorldMouseState::None => {
+                match world_mouse.state {
+                    MouseState::None | MouseState::Hovering => {
                         world_mouse_events.send(WorldMouseEvent::Hover {
                             position: cursor_position_world,
                         });
+
+                        world_mouse.state = MouseState::Hovering;
                     }
 
                     _ => {}
                 }
             }
 
-            _ => {}
+            Interaction::None => {
+                world_mouse.state = MouseState::None;
+            }
         }
     }
 
@@ -93,28 +99,28 @@ pub fn handle_bg_input(
         transform.transform_point(offset.extend(0.0)).truncate()
     };
 
-    match (buttons.just_released(MouseButton::Left), *world_mouse_state) {
-        (true, WorldMouseState::Dragging { last_position }) => {
+    match (buttons.just_released(MouseButton::Left), world_mouse.state) {
+        (true, MouseState::Dragging { last_position }) => {
             world_mouse_events.send(WorldMouseEvent::Drag {
                 offset: convert_drag_offset(cursor_position_window - last_position),
             });
 
-            *world_mouse_state = WorldMouseState::None;
+            world_mouse.state = MouseState::None;
         }
 
-        (false, WorldMouseState::Dragging { last_position }) => {
+        (false, MouseState::Dragging { last_position }) => {
             world_mouse_events.send(WorldMouseEvent::Drag {
                 offset: convert_drag_offset(cursor_position_window - last_position),
             });
 
-            *world_mouse_state = WorldMouseState::Dragging {
+            world_mouse.state = MouseState::Dragging {
                 last_position: cursor_position_window,
             };
         }
 
         (
             released,
-            WorldMouseState::Pressed {
+            MouseState::Pressed {
                 time: press_time,
                 position_world,
                 position_window,
@@ -136,13 +142,13 @@ pub fn handle_bg_input(
                     });
                 }
 
-                *world_mouse_state = WorldMouseState::None;
+                world_mouse.state = MouseState::None;
             } else if !suitable_for_click {
                 world_mouse_events.send(WorldMouseEvent::Drag {
                     offset: convert_drag_offset(cursor_position_window - position_window),
                 });
 
-                *world_mouse_state = WorldMouseState::Dragging {
+                world_mouse.state = MouseState::Dragging {
                     last_position: cursor_position_window,
                 };
             }
@@ -187,9 +193,16 @@ pub fn zoom_camera(
         .clamp(vec3(1.0, 1.0, 1.0), vec3(20.0, 20.0, 1.0));
 }
 
-#[derive(Copy, Clone, Resource)]
-pub enum WorldMouseState {
+#[derive(Resource, Copy, Clone, Debug)]
+pub struct WorldMouse {
+    pub position_world: Vec2,
+    pub state: MouseState,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum MouseState {
     None,
+    Hovering,
     Pressed {
         time: f64,
         position_window: Vec2,
@@ -198,6 +211,15 @@ pub enum WorldMouseState {
     Dragging {
         last_position: Vec2,
     },
+}
+
+impl Default for WorldMouse {
+    fn default() -> Self {
+        WorldMouse {
+            position_world: Vec2::ZERO,
+            state: MouseState::None,
+        }
+    }
 }
 
 pub enum WorldMouseEvent {
