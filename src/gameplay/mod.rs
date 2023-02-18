@@ -31,6 +31,7 @@ impl Plugin for GameplayPlugin {
                 .run_in_state(GameState::Gameplay)
                 .with_system(input::handle_bg_input)
                 .with_system(input::zoom_camera)
+                .with_system(hud::hide_building_ghost_on_right_click)
                 .into(),
         );
 
@@ -56,10 +57,7 @@ impl Plugin for GameplayPlugin {
                 .with_system(hud::update_balance_display)
                 .with_system(hud::select_machine_button)
                 .with_system(hud::drag_building_ghost)
-                //.with_system(systems::drag_ghosts)
-                //.with_system(systems::place_ghosts)
                 .with_system(machines::act_machines)
-                //.with_system(machines::destroy_machines)
                 .into(),
         );
 

@@ -1,12 +1,19 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
-use bevy_tweening::{lens::{UiPositionLens, TransformPositionLens}, *};
+use bevy_tweening::{
+    lens::{TransformPositionLens, UiPositionLens},
+    *,
+};
 
 use crate::assets::Images;
 
 use super::{
-    components::Balance, input::{WorldMouse, MouseState}, machines::Machine, tile_tracked_entities::TilePosition, TILE_SIZE,
+    components::Balance,
+    input::{MouseState, WorldMouse, MouseButtonState, WorldMouseEvent},
+    machines::Machine,
+    tile_tracked_entities::TilePosition,
+    TILE_SIZE,
 };
 
 pub fn update_balance_display(
@@ -114,6 +121,7 @@ pub fn update_selected_machine_button(
 pub fn show_hide_building_ghost(
     mut commands: Commands,
     mut button_selected_events: EventReader<MachineButtonSelectedEvent>,
+    mut world_mouse_events: EventReader<WorldMouseEvent>,
     buttons: Query<&MachineBuyButton>,
     images: Res<Images>,
     world_mouse: Res<WorldMouse>,
@@ -123,7 +131,7 @@ pub fn show_hide_building_ghost(
         for ghost_entity in building_ghosts.iter() {
             commands.entity(ghost_entity).despawn_recursive();
         }
-        
+
         if let Some(selected) = selected_option {
             let button = buttons.get(selected).unwrap();
 
@@ -145,12 +153,29 @@ pub fn show_hide_building_ghost(
     }
 }
 
+pub fn hide_building_ghost_on_right_click(
+    building_ghosts: Query<Entity, With<BuildingGhost>>,
+    mut button_selected_events: EventWriter<MachineButtonSelectedEvent>,
+    mut world_mouse_events: EventReader<WorldMouseEvent>,
+) {
+    if !building_ghosts.is_empty() {
+        for event in world_mouse_events.iter() {
+            if let WorldMouseEvent::Click { button: MouseButton::Right, .. } = event {
+                button_selected_events.send(MachineButtonSelectedEvent(None));
+                break;
+            }
+        }
+    }
+
+    world_mouse_events.clear();
+}
+
 pub fn drag_building_ghost(
     mut commands: Commands,
     world_mouse: Res<WorldMouse>,
     mut building_ghosts: Query<(Entity, &mut BuildingGhost, &Transform)>,
 ) {
-    if let MouseState::Dragging { .. } = world_mouse.state {
+    if let MouseButtonState::Dragging { .. } = world_mouse.button_state_middle {
         return;
     }
 
@@ -168,7 +193,7 @@ pub fn drag_building_ghost(
                 TransformPositionLens {
                     start: start_translation,
                     end: half_tile + mouse_tile_pos.to_world().extend(0.0),
-                }
+                },
             )));
         } else {
             ghost.start_tile = mouse_tile_pos;

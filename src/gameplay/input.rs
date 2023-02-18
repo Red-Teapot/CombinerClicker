@@ -4,7 +4,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::BackgroundInteraction;
+use crate::WorldInteraction;
 
 const CLICK_DURATION: f64 = 0.2;
 const CLICK_DISTANCE: f32 = 10.0;
@@ -12,7 +12,7 @@ const CLICK_DISTANCE: f32 = 10.0;
 pub fn handle_bg_input(
     mut world_mouse: ResMut<WorldMouse>,
     time: Res<Time>,
-    bg_inter: Query<&Interaction, With<BackgroundInteraction>>,
+    bg_inter: Query<&Interaction, With<WorldInteraction>>,
     camera: Query<(&Camera, &GlobalTransform)>,
     buttons: Res<Input<MouseButton>>,
     windows: Res<Windows>,
@@ -35,41 +35,35 @@ pub fn handle_bg_input(
     let cursor_position_world = {
         let window_size = Vec2::new(window.width() as f32, window.height() as f32);
 
-        // convert screen position [0..resolution] to ndc [-1..1] (gpu coordinates)
         let ndc = (cursor_position_window / window_size) * 2.0 - Vec2::ONE;
 
-        // matrix for undoing the projection and camera transform
         let ndc_to_world =
             camera_global_transform.compute_matrix() * camera.projection_matrix().inverse();
 
-        // use it to convert ndc to world-space coordinates
-        let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
-
-        // reduce it to a 2D value
-        let world_pos: Vec2 = world_pos.truncate();
-
-        world_pos
+        ndc_to_world.project_point3(ndc.extend(-1.0)).truncate()
     };
 
     world_mouse.position_world = cursor_position_world;
 
     for interaction in bg_inter.iter() {
         match interaction {
-            Interaction::Clicked => {
-                if buttons.just_pressed(MouseButton::Left) {
-                    world_mouse.state = MouseState::Pressed {
-                        time: time.elapsed_seconds_f64(),
-                        position_window: cursor_position_window,
-                        position_world: cursor_position_world,
-                    };
-                }
-            }
+            Interaction::Hovered | Interaction::Clicked => {
+                let mouse_state = MouseButtonState::Pressed {
+                    time: time.elapsed_seconds_f64(),
+                    position_window: cursor_position_window,
+                    position_world: cursor_position_world,
+                };
 
-            Interaction::Hovered => {
+                if buttons.just_pressed(MouseButton::Left) {
+                    world_mouse.button_state_left = mouse_state;
+                }
+
+                if buttons.just_pressed(MouseButton::Middle) {
+                    world_mouse.button_state_middle = mouse_state;
+                }
+
                 if buttons.just_pressed(MouseButton::Right) {
-                    world_mouse_events.send(WorldMouseEvent::RightClick {
-                        position: cursor_position_world,
-                    });
+                    world_mouse.button_state_right = mouse_state;
                 }
 
                 match world_mouse.state {
@@ -77,50 +71,103 @@ pub fn handle_bg_input(
                         world_mouse_events.send(WorldMouseEvent::Hover {
                             position: cursor_position_world,
                         });
-
+    
                         world_mouse.state = MouseState::Hovering;
                     }
-
+    
                     _ => {}
                 }
             }
 
             Interaction::None => {
                 world_mouse.state = MouseState::None;
+                world_mouse.button_state_left = MouseButtonState::None;
+                world_mouse.button_state_middle = MouseButtonState::None;
+                world_mouse.button_state_right = MouseButtonState::None;
             }
         }
     }
 
-    let convert_drag_offset = |offset: Vec2| -> Vec2 {
-        let transform = camera_global_transform
-            .compute_transform()
-            .with_translation(Vec3::ZERO);
+    let mouse_states = vec![
+        update_mouse_button_state(
+            MouseButton::Left,
+            &mut world_mouse.button_state_left,
+            cursor_position_window,
+            camera_global_transform,
+            &time,
+            &buttons,
+            &mut world_mouse_events,
+        ),
+        update_mouse_button_state(
+            MouseButton::Middle,
+            &mut world_mouse.button_state_middle,
+            cursor_position_window,
+            camera_global_transform,
+            &time,
+            &buttons,
+            &mut world_mouse_events,
+        ),
+        update_mouse_button_state(
+            MouseButton::Right,
+            &mut world_mouse.button_state_right,
+            cursor_position_window,
+            camera_global_transform,
+            &time,
+            &buttons,
+            &mut world_mouse_events,
+        ),
+    ];
 
-        transform.transform_point(offset.extend(0.0)).truncate()
+    world_mouse.state = *mouse_states.iter().max_by_key(|s| s.priority()).unwrap();
+}
+
+fn update_mouse_button_state(
+    button: MouseButton,
+    button_state: &mut MouseButtonState,
+    cursor_position_window: Vec2,
+    camera_global_transform: &GlobalTransform,
+    time: &Res<Time>,
+    buttons: &Input<MouseButton>,
+    world_mouse_events: &mut EventWriter<WorldMouseEvent>,
+) -> MouseState {
+    let camera_transform = camera_global_transform
+        .compute_transform()
+        .with_translation(Vec3::ZERO);
+
+    let convert_drag_offset = |offset: Vec2| -> Vec2 {
+        camera_transform
+            .transform_point(offset.extend(0.0))
+            .truncate()
     };
 
-    match (buttons.just_released(MouseButton::Left), world_mouse.state) {
-        (true, MouseState::Dragging { last_position }) => {
+    match (buttons.just_released(button), *button_state) {
+        (true, MouseButtonState::Dragging { last_position }) => {
             world_mouse_events.send(WorldMouseEvent::Drag {
+                button,
                 offset: convert_drag_offset(cursor_position_window - last_position),
             });
 
-            world_mouse.state = MouseState::None;
+            *button_state = MouseButtonState::None;
+
+            MouseState::None
         }
 
-        (false, MouseState::Dragging { last_position }) => {
+        (false, MouseButtonState::Dragging { last_position }) => {
             world_mouse_events.send(WorldMouseEvent::Drag {
+                button,
                 offset: convert_drag_offset(cursor_position_window - last_position),
             });
 
-            world_mouse.state = MouseState::Dragging {
+            *button_state = MouseButtonState::Dragging {
                 last_position: cursor_position_window,
             };
+
+            MouseState::Dragging
         }
 
         (
             released,
-            MouseState::Pressed {
+            MouseButtonState::Pressed {
                 time: press_time,
                 position_world,
                 position_window,
@@ -133,28 +180,37 @@ pub fn handle_bg_input(
 
             if released {
                 if suitable_for_click {
-                    world_mouse_events.send(WorldMouseEvent::LeftClick {
+                    world_mouse_events.send(WorldMouseEvent::Click {
+                        button,
                         position: position_world,
                     });
                 } else {
                     world_mouse_events.send(WorldMouseEvent::Drag {
+                        button,
                         offset: convert_drag_offset(cursor_position_window - position_window),
                     });
                 }
 
-                world_mouse.state = MouseState::None;
+                *button_state = MouseButtonState::None;
+
+                MouseState::None
             } else if !suitable_for_click {
                 world_mouse_events.send(WorldMouseEvent::Drag {
+                    button,
                     offset: convert_drag_offset(cursor_position_window - position_window),
                 });
 
-                world_mouse.state = MouseState::Dragging {
+                *button_state = MouseButtonState::Dragging {
                     last_position: cursor_position_window,
                 };
+
+                MouseState::Dragging
+            } else {
+                MouseState::None
             }
         }
 
-        _ => {}
+        _ => MouseState::None,
     }
 }
 
@@ -166,7 +222,10 @@ pub fn drag_camera(
 
     for event in world_mouse_events.iter() {
         match event {
-            WorldMouseEvent::Drag { offset } => camera_transform.translation -= offset.extend(0.0),
+            WorldMouseEvent::Drag {
+                button: MouseButton::Middle,
+                offset,
+            } => camera_transform.translation -= offset.extend(0.0),
 
             _ => (),
         }
@@ -197,12 +256,33 @@ pub fn zoom_camera(
 pub struct WorldMouse {
     pub position_world: Vec2,
     pub state: MouseState,
+    pub button_state_left: MouseButtonState,
+    pub button_state_middle: MouseButtonState,
+    pub button_state_right: MouseButtonState,
 }
 
 #[derive(Copy, Clone, Debug)]
 pub enum MouseState {
     None,
     Hovering,
+    Dragging,
+}
+
+impl MouseState {
+    pub fn priority(&self) -> u32 {
+        use MouseState::*;
+
+        match self {
+            None => 0,
+            Hovering => 1,
+            Dragging => 2,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum MouseButtonState {
+    None,
     Pressed {
         time: f64,
         position_window: Vec2,
@@ -218,13 +298,18 @@ impl Default for WorldMouse {
         WorldMouse {
             position_world: Vec2::ZERO,
             state: MouseState::None,
+            button_state_left: MouseButtonState::None,
+            button_state_middle: MouseButtonState::None,
+            button_state_right: MouseButtonState::None,
         }
     }
 }
 
+#[derive(Debug)]
 pub enum WorldMouseEvent {
-    LeftClick { position: Vec2 },
-    RightClick { position: Vec2 },
+    Click { button: MouseButton, position: Vec2 },
+
     Hover { position: Vec2 },
-    Drag { offset: Vec2 },
+
+    Drag { button: MouseButton, offset: Vec2 },
 }

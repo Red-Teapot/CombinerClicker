@@ -13,7 +13,7 @@ use crate::assets::*;
 use crate::gameplay::components::*;
 use crate::palette;
 
-use super::hud::{MachineBuyButton, MachineIcon, MachineName, MoneyDisplay};
+use super::hud::{MachineBuyButton, MachineIcon, MachineName, MoneyDisplay, BuildingGhost};
 use super::input::WorldMouseEvent;
 use super::machines::{Machine, PlacedMachine};
 use super::tile_tracked_entities::{TilePosition, TileTrackedEntities, TileTrackedEntity};
@@ -332,20 +332,20 @@ pub fn spawn_coin(
 
 pub fn click_coins(
     mut commands: Commands,
-    //ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
+    building_ghosts: Query<&BuildingGhost>,
     fonts: Res<Fonts>,
     game_images: Res<Images>,
     mut depth: ResMut<NextCoinDepth>,
     mut world_mouse_events: EventReader<WorldMouseEvent>,
 ) {
-    /*if !ghosts.is_empty() {
+    if !building_ghosts.is_empty() {
         world_mouse_events.clear();
         return;
-    }*/
+    }
 
     for event in world_mouse_events.iter() {
         match event {
-            WorldMouseEvent::LeftClick { position } => {
+            WorldMouseEvent::Click { button: MouseButton::Left, position } => {
                 let initial_velocity = Vec2::from_angle(rand::random::<f32>() * 2.0 * PI) * 80.0;
                 spawn_coin(
                     &mut commands,
@@ -468,44 +468,6 @@ pub fn hover_coins(
         }
     }
 }
-
-/*pub fn drag_ghosts(
-    mut ghosts: Query<(Entity, &mut Transform, &BuildingGhost)>,
-    mut world_mouse_events: EventReader<WorldMouseEvent>,
-) {
-    let mut hover_position = None;
-
-    for event in world_mouse_events.iter() {
-        if let WorldMouseEvent::Hover { position } = event {
-            hover_position = Some(*position);
-        }
-    }
-
-    if hover_position.is_none() {
-        return;
-    }
-
-    let hover_tile = TilePosition::from_world(hover_position.unwrap());
-
-    for (_, mut transform, ghost) in ghosts.iter_mut() {
-        match ghost {
-            BuildingGhost::Machine(_) => {
-                transform.translation = hover_tile
-                    .to_world()
-                    .add(Vec2::splat(32.0 * 4.0))
-                    .extend(0.0);
-            }
-
-            BuildingGhost::Spot { offset_x, offset_y } => {
-                transform.translation = hover_tile
-                    .offset(*offset_x, *offset_y)
-                    .to_world()
-                    .add(Vec2::splat(32.0 * 4.0))
-                    .extend(0.0);
-            }
-        }
-    }
-}*/
 
 /*pub fn place_ghosts(
     mut commands: Commands,

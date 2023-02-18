@@ -94,7 +94,7 @@ pub fn startup_game(mut commands: Commands) {
             background_color: Color::NONE.into(),
             ..default()
         })
-        .insert(BackgroundInteraction);
+        .insert(WorldInteraction);
 }
 
 pub fn can_use_mouse(behavior: Res<InputHandlingBehavior>) -> bool {
@@ -105,6 +105,12 @@ pub fn should_use_keyboard(behavior: Res<InputHandlingBehavior>) -> bool {
     behavior.can_use_keyboard
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum GameState {
+    Title,
+    Gameplay,
+}
+
 #[derive(SystemLabel, Debug, Clone, PartialEq, Eq, Hash)]
 enum GameSystemLabel {
     InputHandling,
@@ -113,17 +119,11 @@ enum GameSystemLabel {
     PostUpdate,
 }
 
-#[derive(Component)]
-pub struct BackgroundInteraction;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum GameState {
-    Title,
-    Gameplay,
-}
-
 #[derive(Resource)]
 pub struct InputHandlingBehavior {
     pub can_use_mouse: bool,
     pub can_use_keyboard: bool,
 }
+
+#[derive(Component)]
+pub struct WorldInteraction;
