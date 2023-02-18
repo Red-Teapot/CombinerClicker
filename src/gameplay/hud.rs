@@ -6,7 +6,7 @@ use bevy_tweening::{lens::{UiPositionLens, TransformPositionLens}, *};
 use crate::assets::Images;
 
 use super::{
-    components::Balance, input::WorldMouse, machines::Machine, tile_tracked_entities::TilePosition, TILE_SIZE,
+    components::Balance, input::{WorldMouse, MouseState}, machines::Machine, tile_tracked_entities::TilePosition, TILE_SIZE,
 };
 
 pub fn update_balance_display(
@@ -129,27 +129,50 @@ pub fn show_hide_building_ghost(
 
             let ghost_entity = button.machine.spawn_graphics(&mut commands, &images);
 
+            let tile_position = TilePosition::from_world(world_mouse.position_world);
+
             commands
                 .entity(ghost_entity)
                 .insert(BuildingGhost {
                     machine: button.machine,
+                    start_tile: tile_position,
+                    end_tile: tile_position,
                 })
                 .insert(Transform::from_translation(
-                    TilePosition::snap_world(world_mouse.position_world)
-                        .extend(0.0),
+                    tile_position.to_world().extend(0.0),
                 ));
         }
     }
 }
 
 pub fn drag_building_ghost(
+    mut commands: Commands,
     world_mouse: Res<WorldMouse>,
-    mut building_ghosts: Query<&mut Transform, With<BuildingGhost>>,
+    mut building_ghosts: Query<(Entity, &mut BuildingGhost, &Transform)>,
 ) {
+    if let MouseState::Dragging { .. } = world_mouse.state {
+        return;
+    }
+
     let half_tile = Vec2::splat(TILE_SIZE / 2.0).extend(0.0);
 
-    for mut transform in building_ghosts.iter_mut() {
-        transform.translation = half_tile + TilePosition::snap_world(world_mouse.position_world).extend(0.0);
+    let mouse_tile_pos = TilePosition::from_world(world_mouse.position_world);
+
+    for (entity, mut ghost, transform) in building_ghosts.iter_mut() {
+        if ghost.end_tile != mouse_tile_pos {
+            let start_translation = transform.translation;
+
+            commands.entity(entity).insert(Animator::new(Tween::new(
+                EaseFunction::CubicOut,
+                Duration::from_secs_f32(0.1),
+                TransformPositionLens {
+                    start: start_translation,
+                    end: half_tile + mouse_tile_pos.to_world().extend(0.0),
+                }
+            )));
+        } else {
+            ghost.start_tile = mouse_tile_pos;
+        }
     }
 }
 
@@ -184,4 +207,6 @@ impl MachineBuyButton {
 #[derive(Component)]
 pub struct BuildingGhost {
     machine: Machine,
+    start_tile: TilePosition,
+    end_tile: TilePosition,
 }
