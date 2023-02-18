@@ -10,7 +10,7 @@ use crate::assets::Images;
 
 use super::{
     components::Balance,
-    input::{MouseState, WorldMouse, MouseButtonState, WorldMouseEvent},
+    input::{MouseButtonState, MouseState, WorldMouse, WorldMouseEvent},
     machines::Machine,
     tile_tracked_entities::TilePosition,
     TILE_SIZE,
@@ -160,7 +160,11 @@ pub fn hide_building_ghost_on_right_click(
 ) {
     if !building_ghosts.is_empty() {
         for event in world_mouse_events.iter() {
-            if let WorldMouseEvent::Click { button: MouseButton::Right, .. } = event {
+            if let WorldMouseEvent::Click {
+                button: MouseButton::Right,
+                ..
+            } = event
+            {
                 button_selected_events.send(MachineButtonSelectedEvent(None));
                 break;
             }

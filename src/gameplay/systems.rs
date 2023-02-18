@@ -13,7 +13,7 @@ use crate::assets::*;
 use crate::gameplay::components::*;
 use crate::palette;
 
-use super::hud::{MachineBuyButton, MachineIcon, MachineName, MoneyDisplay, BuildingGhost};
+use super::hud::{BuildingGhost, MachineBuyButton, MachineIcon, MachineName, MoneyDisplay};
 use super::input::WorldMouseEvent;
 use super::machines::{Machine, PlacedMachine};
 use super::tile_tracked_entities::{TilePosition, TileTrackedEntities, TileTrackedEntity};
@@ -345,7 +345,10 @@ pub fn click_coins(
 
     for event in world_mouse_events.iter() {
         match event {
-            WorldMouseEvent::Click { button: MouseButton::Left, position } => {
+            WorldMouseEvent::Click {
+                button: MouseButton::Left,
+                position,
+            } => {
                 let initial_velocity = Vec2::from_angle(rand::random::<f32>() * 2.0 * PI) * 80.0;
                 spawn_coin(
                     &mut commands,

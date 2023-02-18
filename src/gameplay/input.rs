@@ -71,10 +71,10 @@ pub fn handle_bg_input(
                         world_mouse_events.send(WorldMouseEvent::Hover {
                             position: cursor_position_world,
                         });
-    
+
                         world_mouse.state = MouseState::Hovering;
                     }
-    
+
                     _ => {}
                 }
             }
