@@ -236,7 +236,7 @@ pub fn place_machines(
         }
 
         balance.coins -= machine_cost;
-        let placed_machine = machine.spawn_graphics(&mut commands, &images);
+        let placed_machine = machine.spawn_graphics(&mut commands, &images, true);
         commands
             .entity(placed_machine)
             .insert(Transform::from_translation(
@@ -248,9 +248,19 @@ pub fn place_machines(
             })
             .insert(TileTrackedEntity);
 
-        update_spots_requests.send(UpdateSpotsRequest {
-            position: request.position,
-        });
+        let update_positions = vec![
+            request.position,
+            request.position.offset(-1, 0),
+            request.position.offset(1, 0),
+            request.position.offset(0, -1),
+            request.position.offset(0, 1),
+        ];
+
+        for position in update_positions {
+            update_spots_requests.send(UpdateSpotsRequest {
+                position,
+            });
+        }
     }
 }
 
@@ -277,6 +287,31 @@ pub fn delete_machines(
             update_spots_requests.send(UpdateSpotsRequest {
                 position: request.position,
             });
+        }
+    }
+}
+
+pub fn update_spots(
+    mut requests: EventReader<UpdateSpotsRequest>,
+    tile_tracked_entities: Res<TileTrackedEntities>,
+    machines: Query<&PlacedMachine>,
+    mut spots: Query<&mut Visibility, With<Spot>>,
+) {
+    for request in requests.iter() {
+        let mut has_machine = false;
+
+        if let Some(entities) = tile_tracked_entities.get_entities_in_tile(request.position) {
+            for entity in entities {
+                has_machine |= machines.contains(*entity);
+            }
+        }
+
+        if let Some(entities) = tile_tracked_entities.get_entities_in_tile(request.position) {
+            for entity in entities {
+                if let Ok(mut visibility) = spots.get_mut(*entity) {
+                    visibility.is_visible = !has_machine;
+                }
+            }
         }
     }
 }
@@ -369,7 +404,7 @@ impl Machine {
         }
     }
 
-    pub fn spawn_graphics(&self, commands: &mut Commands, images: &Images) -> Entity {
+    pub fn spawn_graphics(&self, commands: &mut Commands, images: &Images, is_placed: bool) -> Entity {
         use Machine::*;
 
         let (spot_up, spot_down, spot_left, spot_right) = match self {
@@ -390,35 +425,51 @@ impl Machine {
             })
             .with_children(|machine| {
                 if spot_up {
-                    machine.spawn(SpriteBundle {
+                    let mut spot = machine.spawn(SpriteBundle {
                         texture: images.spot.clone(),
-                        transform: Transform::from_translation(vec3(0.0, TILE_SIZE, 0.0)),
+                        transform: Transform::from_translation(vec3(0.0, TILE_SIZE, -0.01)),
                         ..default()
                     });
+
+                    if is_placed {
+                        spot.insert(Spot).insert(TileTrackedEntity);
+                    }
                 }
 
                 if spot_down {
-                    machine.spawn(SpriteBundle {
+                    let mut spot = machine.spawn(SpriteBundle {
                         texture: images.spot.clone(),
-                        transform: Transform::from_translation(vec3(0.0, -TILE_SIZE, 0.0)),
+                        transform: Transform::from_translation(vec3(0.0, -TILE_SIZE, -0.01)),
                         ..default()
                     });
+
+                    if is_placed {
+                        spot.insert(Spot).insert(TileTrackedEntity);
+                    }
                 }
 
                 if spot_left {
-                    machine.spawn(SpriteBundle {
+                    let mut spot = machine.spawn(SpriteBundle {
                         texture: images.spot.clone(),
-                        transform: Transform::from_translation(vec3(-TILE_SIZE, 0.0, 0.0)),
+                        transform: Transform::from_translation(vec3(-TILE_SIZE, 0.0, -0.01)),
                         ..default()
                     });
+
+                    if is_placed {
+                        spot.insert(Spot).insert(TileTrackedEntity);
+                    }
                 }
 
                 if spot_right {
-                    machine.spawn(SpriteBundle {
+                    let mut spot = machine.spawn(SpriteBundle {
                         texture: images.spot.clone(),
-                        transform: Transform::from_translation(vec3(TILE_SIZE, 0.0, 0.0)),
+                        transform: Transform::from_translation(vec3(TILE_SIZE, 0.0, -0.01)),
                         ..default()
                     });
+
+                    if is_placed {
+                        spot.insert(Spot).insert(TileTrackedEntity);
+                    }
                 }
             })
             .id()
@@ -443,3 +494,6 @@ pub struct MachineDeleteRequest {
 pub struct UpdateSpotsRequest {
     pub position: TilePosition,
 }
+
+#[derive(Component)]
+pub struct Spot;

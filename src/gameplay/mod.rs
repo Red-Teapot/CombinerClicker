@@ -54,6 +54,7 @@ impl Plugin for GameplayPlugin {
                 .label(GameSystemLabel::PreUpdate)
                 .before(GameSystemLabel::Update)
                 .with_system(tile_tracked_entities::track_tile_entities)
+                .with_system(machines::update_spots)
                 .into(),
         );
 

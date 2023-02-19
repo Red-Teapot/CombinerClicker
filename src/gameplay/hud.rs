@@ -437,7 +437,7 @@ pub fn show_hide_building_ghost(
             let tile_position = TilePosition::from_world(world_mouse.position_world);
 
             let ghost_entity = if let Ok(machine) = machine_buttons.get(selected) {
-                let entity = machine.spawn_graphics(&mut commands, &images);
+                let entity = machine.spawn_graphics(&mut commands, &images, false);
 
                 commands.entity(entity).insert(*machine);
 
