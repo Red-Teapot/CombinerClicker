@@ -221,7 +221,7 @@ pub fn drag_camera(
     for event in world_mouse_events.iter() {
         match event {
             WorldMouseEvent::Drag {
-                button: MouseButton::Middle,
+                button: MouseButton::Right,
                 start_world,
                 end_world,
                 ..
