@@ -3,7 +3,7 @@ use iyes_loopless::prelude::*;
 
 use crate::{can_use_mouse, GameState, GameSystemLabel};
 
-use self::{components::*, hud::MachineButtonSelectedEvent};
+use self::{components::*, hud::MachineButtonSelectedEvent, machines::MachinePlaceRequest};
 
 pub mod components;
 pub mod systems;
@@ -14,6 +14,7 @@ pub mod machines;
 pub mod tile_tracked_entities;
 
 pub const TILE_SIZE: f32 = 64.0 * 4.0;
+pub const HALF_TILE_SIZE: f32 = TILE_SIZE / 2.0;
 
 pub struct GameplayPlugin;
 
@@ -21,6 +22,7 @@ impl Plugin for GameplayPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<input::WorldMouseEvent>()
             .add_event::<MachineButtonSelectedEvent>()
+            .add_event::<MachinePlaceRequest>()
             .add_event::<CoinPickup>();
 
         app.add_system_set(
@@ -32,6 +34,7 @@ impl Plugin for GameplayPlugin {
                 .with_system(input::handle_bg_input)
                 .with_system(input::zoom_camera)
                 .with_system(hud::hide_building_ghost_on_right_click)
+                .with_system(hud::place_building_ghost)
                 .into(),
         );
 
@@ -58,6 +61,7 @@ impl Plugin for GameplayPlugin {
                 .with_system(hud::select_machine_button)
                 .with_system(hud::drag_building_ghost)
                 .with_system(machines::act_machines)
+                .with_system(machines::place_machines)
                 .into(),
         );
 

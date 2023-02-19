@@ -10,8 +10,8 @@ use crate::assets::Images;
 
 use super::{
     components::Balance,
-    input::{MouseButtonState, MouseState, WorldMouse, WorldMouseEvent},
-    machines::Machine,
+    input::{MouseButtonState, WorldMouse, WorldMouseEvent},
+    machines::{Machine, MachinePlaceRequest},
     tile_tracked_entities::TilePosition,
     TILE_SIZE,
 };
@@ -121,7 +121,6 @@ pub fn update_selected_machine_button(
 pub fn show_hide_building_ghost(
     mut commands: Commands,
     mut button_selected_events: EventReader<MachineButtonSelectedEvent>,
-    mut world_mouse_events: EventReader<WorldMouseEvent>,
     buttons: Query<&MachineBuyButton>,
     images: Res<Images>,
     world_mouse: Res<WorldMouse>,
@@ -201,6 +200,59 @@ pub fn drag_building_ghost(
             )));
         } else {
             ghost.start_tile = mouse_tile_pos;
+        }
+    }
+}
+
+pub fn place_building_ghost(
+    mut machine_place_requests: EventWriter<MachinePlaceRequest>,
+    mut world_mouse_events: EventReader<WorldMouseEvent>,
+    building_ghosts: Query<&BuildingGhost>,
+) {
+    if let Ok(ghost) = building_ghosts.get_single() {
+        for event in world_mouse_events.iter() {
+            match event {
+                WorldMouseEvent::Click {
+                    button: MouseButton::Left,
+                    position,
+                } => {
+                    let tile_position = TilePosition::from_world(*position);
+
+                    machine_place_requests.send(MachinePlaceRequest {
+                        machine: ghost.machine,
+                        position: tile_position,
+                    });
+                }
+
+                WorldMouseEvent::Drag {
+                    button: MouseButton::Left,
+                    start_world,
+                    end_world,
+                } => {
+                    let start_tile = TilePosition::from_world(*start_world);
+                    let end_tile = TilePosition::from_world(*end_world);
+
+                    let num_steps = i32::max(
+                        (end_tile.x - start_tile.x).abs(),
+                        (end_tile.y - start_tile.y).abs(),
+                    ).max(1);
+
+                    let start_tile_vec = start_tile.to_vec();
+                    let step_vec = (end_tile.to_vec() - start_tile_vec) / (num_steps as f32);
+
+                    for i in 0..num_steps {
+                        let pos_vec = start_tile_vec + step_vec * (i as f32);
+                        let tile_position = TilePosition::from_vec(pos_vec);
+
+                        machine_place_requests.send(MachinePlaceRequest {
+                            machine: ghost.machine,
+                            position: tile_position,
+                        });
+                    }
+                }
+
+                _ => {}
+            }
         }
     }
 }

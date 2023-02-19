@@ -1,5 +1,4 @@
 use std::f32::consts::PI;
-use std::ops::Add;
 use std::time::Duration;
 
 use bevy::math::vec3;
@@ -15,7 +14,7 @@ use crate::palette;
 
 use super::hud::{BuildingGhost, MachineBuyButton, MachineIcon, MachineName, MoneyDisplay};
 use super::input::WorldMouseEvent;
-use super::machines::{Machine, PlacedMachine};
+use super::machines::Machine;
 use super::tile_tracked_entities::{TilePosition, TileTrackedEntities, TileTrackedEntity};
 
 pub fn startup_gameplay(
@@ -471,121 +470,3 @@ pub fn hover_coins(
         }
     }
 }
-
-/*pub fn place_ghosts(
-    mut commands: Commands,
-    tile_tracked_entities: Res<TileTrackedEntities>,
-    mut ghosts: Query<
-        (Entity, &mut Transform, &mut Sprite, &BuildingGhost),
-        Without<PlacedMachine>,
-    >,
-    placed_machines: Query<(&Transform, &PlacedMachine), Without<BuildingGhost>>,
-    placed_spots: Query<(&Transform, &Spot), (Without<PlacedMachine>, Without<BuildingGhost>)>,
-    mut world_mouse_events: EventReader<WorldMouseEvent>,
-) {
-    let mut clicked = false;
-
-    for event in world_mouse_events.iter() {
-        match event {
-            WorldMouseEvent::LeftClick { .. } => {
-                clicked = true;
-            }
-
-            _ => (),
-        }
-    }
-
-    if !clicked {
-        return;
-    }
-
-    let mut can_place = true;
-
-    for (_, transform, _, ghost) in ghosts.iter() {
-        let tile = TilePosition::from_world(transform.translation.truncate());
-
-        if let Some(tile_entities) = tile_tracked_entities.get_entities_in_tile(tile) {
-            match ghost {
-                BuildingGhost::Spot { .. } => (),
-
-                BuildingGhost::Machine(..) => {
-                    for &entity in tile_entities {
-                        if let Ok((machine_transform, _)) = placed_machines.get(entity) {
-                            let machine_tile =
-                                TilePosition::from_world(machine_transform.translation.truncate());
-
-                            if machine_tile == tile {
-                                can_place = false;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if !can_place {
-        return;
-    }
-
-    for (entity, mut transform, mut sprite, ghost) in ghosts.iter_mut() {
-        match ghost {
-            BuildingGhost::Spot { .. } => {
-                let tile = TilePosition::from_world(transform.translation.truncate());
-                let mut despawned = false;
-
-                if let Some(tile_entities) = tile_tracked_entities.get_entities_in_tile(tile) {
-                    for &tile_entity in tile_entities {
-                        if let Ok((machine_transform, _)) = placed_machines.get(tile_entity) {
-                            let machine_tile =
-                                TilePosition::from_world(machine_transform.translation.truncate());
-
-                            if machine_tile == tile {
-                                commands.entity(entity).despawn_recursive();
-                                despawned = true;
-                            }
-                        }
-                    }
-                }
-
-                if !despawned {
-                    sprite.color = Color::WHITE;
-                    commands
-                        .entity(entity)
-                        .remove::<BuildingGhost>()
-                        .insert(Spot)
-                        .insert(TileTrackedEntity);
-                    transform.translation.z = 0.0;
-                }
-            }
-
-            BuildingGhost::Machine(machine) => {
-                let tile = TilePosition::from_world(transform.translation.truncate());
-
-                if let Some(tile_entities) = tile_tracked_entities.get_entities_in_tile(tile) {
-                    for &tile_entity in tile_entities {
-                        if let Ok((spot_transform, _)) = placed_spots.get(tile_entity) {
-                            let spot_tile =
-                                TilePosition::from_world(spot_transform.translation.truncate());
-
-                            if spot_tile == tile {
-                                commands.entity(tile_entity).despawn_recursive();
-                            }
-                        }
-                    }
-                }
-
-                sprite.color = Color::WHITE;
-                commands
-                    .entity(entity)
-                    .remove::<BuildingGhost>()
-                    .insert(PlacedMachine {
-                        machine: *machine,
-                        action_timer: Timer::new(machine.action_period(), TimerMode::Repeating),
-                    })
-                    .insert(TileTrackedEntity);
-                transform.translation.z = 0.0;
-            }
-        }
-    }
-}*/

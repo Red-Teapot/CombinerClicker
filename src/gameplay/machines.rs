@@ -8,10 +8,10 @@ use crate::{
 };
 
 use super::{
-    components::{Coin, CoinPickup, Currency, Money, NextCoinDepth},
-    input::WorldMouseEvent,
+    components::{Balance, Coin, CoinPickup, Currency, Money, NextCoinDepth},
     systems::spawn_coin,
-    tile_tracked_entities::{TilePosition, TileTrackedEntities},
+    tile_tracked_entities::{TilePosition, TileTrackedEntities, TileTrackedEntity},
+    HALF_TILE_SIZE,
 };
 
 pub fn act_machines(
@@ -210,6 +210,45 @@ pub fn act_machines(
     }
 }
 
+pub fn place_machines(
+    mut commands: Commands,
+    mut requests: EventReader<MachinePlaceRequest>,
+    mut balance: ResMut<Balance>,
+    tile_tracked_entities: Res<TileTrackedEntities>,
+    machines: Query<&PlacedMachine>,
+    images: Res<Images>,
+) {
+    'requests: for request in requests.iter() {
+        let machine = request.machine;
+        let machine_cost = machine.cost();
+
+        if machine_cost > balance.coins {
+            continue 'requests;
+        }
+
+        if let Some(entities) = tile_tracked_entities.get_entities_in_tile(request.position) {
+            for tile_entity in entities {
+                if machines.get(*tile_entity).is_ok() {
+                    continue 'requests;
+                }
+            }
+        }
+
+        balance.coins -= machine_cost;
+        let placed_machine = machine.spawn_graphics(&mut commands, &images);
+        commands
+            .entity(placed_machine)
+            .insert(Transform::from_translation(
+                (request.position.to_world() + Vec2::splat(HALF_TILE_SIZE)).extend(0.0),
+            ))
+            .insert(PlacedMachine {
+                machine,
+                action_timer: Timer::new(machine.action_period(), TimerMode::Repeating),
+            })
+            .insert(TileTrackedEntity);
+    }
+}
+
 /*pub fn destroy_machines(
     mut commands: Commands,
     mut world_mouse_events: EventReader<WorldMouseEvent>,
@@ -384,8 +423,6 @@ impl Machine {
             Multiplier => (false, true, true, true),
         };
 
-        let half_tile = Vec2::splat(TILE_SIZE / 2.0).extend(0.0);
-
         commands
             .spawn(SpriteBundle {
                 texture: self.image(images),
@@ -432,4 +469,9 @@ impl Machine {
 pub struct PlacedMachine {
     pub machine: Machine,
     pub action_timer: Timer,
+}
+
+pub struct MachinePlaceRequest {
+    pub machine: Machine,
+    pub position: TilePosition,
 }

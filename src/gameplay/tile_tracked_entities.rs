@@ -16,7 +16,7 @@ pub fn track_tile_entities(
 #[derive(Component)]
 pub struct TileTrackedEntity;
 
-#[derive(Copy, Clone, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub struct TilePosition {
     pub x: i32,
     pub y: i32,
@@ -36,6 +36,17 @@ impl TilePosition {
 
     pub fn to_world(&self) -> Vec2 {
         vec2((self.x as f32) * TILE_SIZE, (self.y as f32) * TILE_SIZE)
+    }
+
+    pub fn from_vec(vec: Vec2) -> TilePosition {
+        TilePosition {
+            x: vec.x.floor() as i32,
+            y: vec.y.floor() as i32,
+        }
+    }
+
+    pub fn to_vec(&self) -> Vec2 {
+        vec2(self.x as f32, self.y as f32)
     }
 
     pub fn offset(&self, x: i32, y: i32) -> TilePosition {

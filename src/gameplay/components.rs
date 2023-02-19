@@ -1,7 +1,5 @@
 use bevy::prelude::*;
 
-use super::machines::Machine;
-
 pub type Currency = u128;
 
 #[derive(Resource)]
