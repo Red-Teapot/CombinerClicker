@@ -15,7 +15,7 @@ use crate::{
 use super::{
     components::Balance,
     input::{MouseButtonState, WorldMouse, WorldMouseEvent},
-    machines::{Machine, MachinePlaceRequest, MachineDeleteRequest},
+    machines::{Machine, MachineDeleteRequest, MachinePlaceRequest},
     tile_tracked_entities::TilePosition,
     TILE_SIZE,
 };

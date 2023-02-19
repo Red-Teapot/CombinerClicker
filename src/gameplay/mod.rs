@@ -6,7 +6,7 @@ use crate::{can_use_mouse, GameState, GameSystemLabel};
 use self::{
     components::*,
     hud::ToolbarButtonSelectedEvent,
-    machines::{MachinePlaceRequest, UpdateSpotsRequest, MachineDeleteRequest},
+    machines::{MachineDeleteRequest, MachinePlaceRequest, UpdateSpotsRequest},
 };
 
 pub mod components;

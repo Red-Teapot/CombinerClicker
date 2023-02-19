@@ -257,9 +257,7 @@ pub fn place_machines(
         ];
 
         for position in update_positions {
-            update_spots_requests.send(UpdateSpotsRequest {
-                position,
-            });
+            update_spots_requests.send(UpdateSpotsRequest { position });
         }
     }
 }
@@ -404,7 +402,12 @@ impl Machine {
         }
     }
 
-    pub fn spawn_graphics(&self, commands: &mut Commands, images: &Images, is_placed: bool) -> Entity {
+    pub fn spawn_graphics(
+        &self,
+        commands: &mut Commands,
+        images: &Images,
+        is_placed: bool,
+    ) -> Entity {
         use Machine::*;
 
         let (spot_up, spot_down, spot_left, spot_right) = match self {
