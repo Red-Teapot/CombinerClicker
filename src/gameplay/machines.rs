@@ -217,6 +217,7 @@ pub fn place_machines(
     tile_tracked_entities: Res<TileTrackedEntities>,
     machines: Query<&PlacedMachine>,
     images: Res<Images>,
+    mut update_spots_requests: EventWriter<UpdateSpotsRequest>,
 ) {
     'requests: for request in requests.iter() {
         let machine = request.machine;
@@ -246,80 +247,39 @@ pub fn place_machines(
                 action_timer: Timer::new(machine.action_period(), TimerMode::Repeating),
             })
             .insert(TileTrackedEntity);
+
+        update_spots_requests.send(UpdateSpotsRequest {
+            position: request.position,
+        });
     }
 }
 
-/*pub fn destroy_machines(
+pub fn delete_machines(
     mut commands: Commands,
-    mut world_mouse_events: EventReader<WorldMouseEvent>,
-    machines: Query<&PlacedMachine, Without<Spot>>,
-    spots: Query<&Spot, Without<PlacedMachine>>,
+    mut requests: EventReader<MachineDeleteRequest>,
     tile_tracked_entities: Res<TileTrackedEntities>,
+    machines: Query<&PlacedMachine>,
+    mut update_spots_requests: EventWriter<UpdateSpotsRequest>,
 ) {
-    let try_despawn_spot = |tile_pos: TilePosition, commands: &mut Commands| {
-        if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile_pos) {
-            for &entity in entities {
-                if let Ok(_) = spots.get(entity) {
-                    commands.entity(entity).despawn_recursive();
-                    break;
+    for request in requests.iter() {
+        let mut did_delete = false;
+
+        if let Some(entities) = tile_tracked_entities.get_entities_in_tile(request.position) {
+            for tile_entity in entities {
+                if machines.get(*tile_entity).is_ok() {
+                    commands.entity(*tile_entity).despawn_recursive();
+                    did_delete = true;
                 }
             }
         }
-    };
 
-    for event in world_mouse_events.iter() {
-        match event {
-            WorldMouseEvent::RightClick { position } => {
-                let tile_pos = TilePosition::from_world(*position);
-
-                if let Some(entities) = tile_tracked_entities.get_entities_in_tile(tile_pos) {
-                    for &machine_entity in entities {
-                        if let Ok(machine) = machines.get(machine_entity) {
-                            commands.entity(machine_entity).despawn_recursive();
-
-                            match machine.machine {
-                                Machine::Miner => {
-                                    try_despawn_spot(tile_pos.offset(0, -1), &mut commands)
-                                }
-                                Machine::Collector => {
-                                    try_despawn_spot(tile_pos.offset(0, 1), &mut commands)
-                                }
-                                Machine::ConveyorUp => {
-                                    try_despawn_spot(tile_pos.offset(0, 1), &mut commands);
-                                    try_despawn_spot(tile_pos.offset(0, -1), &mut commands);
-                                }
-                                Machine::ConveyorDown => {
-                                    try_despawn_spot(tile_pos.offset(0, 1), &mut commands);
-                                    try_despawn_spot(tile_pos.offset(0, -1), &mut commands);
-                                }
-                                Machine::ConveyorLeft => {
-                                    try_despawn_spot(tile_pos.offset(1, 0), &mut commands);
-                                    try_despawn_spot(tile_pos.offset(-1, 0), &mut commands);
-                                }
-                                Machine::ConveyorRight => {
-                                    try_despawn_spot(tile_pos.offset(1, 0), &mut commands);
-                                    try_despawn_spot(tile_pos.offset(-1, 0), &mut commands);
-                                }
-                                Machine::Adder => {
-                                    try_despawn_spot(tile_pos.offset(1, 0), &mut commands);
-                                    try_despawn_spot(tile_pos.offset(-1, 0), &mut commands);
-                                    try_despawn_spot(tile_pos.offset(0, -1), &mut commands);
-                                }
-                                Machine::Multiplier => {
-                                    try_despawn_spot(tile_pos.offset(1, 0), &mut commands);
-                                    try_despawn_spot(tile_pos.offset(-1, 0), &mut commands);
-                                    try_despawn_spot(tile_pos.offset(0, -1), &mut commands);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            _ => (),
+        if did_delete {
+            update_spots_requests.send(UpdateSpotsRequest {
+                position: request.position,
+            });
         }
     }
-}*/
+}
 
 #[derive(Component, Copy, Clone)]
 pub enum Machine {
@@ -473,5 +433,13 @@ pub struct PlacedMachine {
 
 pub struct MachinePlaceRequest {
     pub machine: Machine,
+    pub position: TilePosition,
+}
+
+pub struct MachineDeleteRequest {
+    pub position: TilePosition,
+}
+
+pub struct UpdateSpotsRequest {
     pub position: TilePosition,
 }

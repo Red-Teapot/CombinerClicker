@@ -71,8 +71,7 @@ impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ClearColor(palette::OFF_WHITE))
             .add_startup_system(startup_game)
-            .add_loopless_state(GameState::Title)
-            .add_enter_system(GameState::Gameplay, gameplay::systems::startup_gameplay);
+            .add_loopless_state(GameState::Title);
 
         app.add_system(common::systems::update_delayed_despawn);
 

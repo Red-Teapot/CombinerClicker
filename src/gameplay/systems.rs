@@ -3,27 +3,18 @@ use std::time::Duration;
 
 use bevy::math::vec3;
 use bevy::prelude::*;
-use bevy::ui::FocusPolicy;
-use bevy_ninepatch::{NinePatchBundle, NinePatchData};
-use bevy_tweening::lens::{TransformPositionLens, TransformScaleLens, UiPositionLens};
+use bevy_tweening::lens::{TransformPositionLens, TransformScaleLens};
 use bevy_tweening::*;
 
 use crate::assets::*;
 use crate::gameplay::components::*;
 use crate::palette;
 
-use super::hud::{BuildingGhost, MachineBuyButton, MachineIcon, MachineName, MoneyDisplay};
+use super::hud::ToolGhost;
 use super::input::WorldMouseEvent;
-use super::machines::Machine;
 use super::tile_tracked_entities::{TilePosition, TileTrackedEntities, TileTrackedEntity};
 
-pub fn startup_gameplay(
-    mut commands: Commands,
-    fonts: Res<Fonts>,
-    images: Res<Images>,
-    ninepatches: Res<NinePatches>,
-    mut camera: Query<&mut Transform, With<Camera2d>>,
-) {
+pub fn startup_gameplay(mut commands: Commands, mut camera: Query<&mut Transform, With<Camera2d>>) {
     camera.single_mut().scale = vec3(4.0, 4.0, 1.0);
 
     commands.insert_resource(Balance::default());
@@ -36,226 +27,6 @@ pub fn startup_gameplay(
     commands.insert_resource(super::input::WorldMouse::default());
 
     commands.insert_resource(TileTrackedEntities::new());
-
-    commands
-        .spawn(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                align_items: AlignItems::Stretch,
-                justify_content: JustifyContent::SpaceBetween,
-                flex_direction: FlexDirection::Column,
-                ..default()
-            },
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .with_children(|window| {
-            window
-                .spawn(NodeBundle {
-                    style: Style {
-                        align_items: AlignItems::FlexEnd,
-                        ..default()
-                    },
-                    focus_policy: FocusPolicy::Pass,
-                    ..default()
-                })
-                .with_children(|top_panel| {
-                    top_panel
-                        .spawn(NodeBundle {
-                            style: Style {
-                                flex_direction: FlexDirection::Row,
-                                padding: UiRect::all(Val::Px(8.0)),
-                                ..default()
-                            },
-                            ..default()
-                        })
-                        .with_children(|money_display| {
-                            money_display
-                                .spawn(ImageBundle {
-                                    image: images.coin.clone().into(),
-                                    style: Style {
-                                        size: Size::new(Val::Px(48.0), Val::Px(48.0)),
-                                        justify_content: JustifyContent::Center,
-                                        align_items: AlignItems::Center,
-                                        ..default()
-                                    },
-                                    ..default()
-                                })
-                                .with_children(|coin| {
-                                    coin.spawn(TextBundle {
-                                        text: Text::from_section(
-                                            "1",
-                                            TextStyle {
-                                                font: fonts.varela.clone(),
-                                                color: palette::DARK_BLUE,
-                                                font_size: 40.0,
-                                            },
-                                        )
-                                        .with_alignment(TextAlignment::CENTER),
-                                        ..default()
-                                    });
-                                })
-                                .insert(Name::new("Icon"));
-
-                            money_display
-                                .spawn(TextBundle {
-                                    text: Text::from_section(
-                                        "0",
-                                        TextStyle {
-                                            font: fonts.varela.clone(),
-                                            color: palette::DARK_BLUE,
-                                            font_size: 48.0,
-                                        },
-                                    ),
-                                    style: Style {
-                                        margin: UiRect {
-                                            left: Val::Px(16.0),
-                                            ..default()
-                                        },
-                                        ..default()
-                                    },
-                                    ..default()
-                                })
-                                .insert(Name::new("Value"))
-                                .insert(MoneyDisplay);
-                        })
-                        .insert(Name::new("Money Display"));
-                })
-                .insert(Name::new("Top Panel"))
-                .insert(Animator::new(Tween::new(
-                    EaseFunction::QuadraticOut,
-                    Duration::from_secs_f32(0.2),
-                    UiPositionLens {
-                        start: UiRect::top(Val::Px(-64.0)),
-                        end: UiRect::top(Val::Px(0.0)),
-                    },
-                )));
-
-            let bottom_panel_content = window
-                .spawn(NodeBundle {
-                    style: Style {
-                        align_items: AlignItems::FlexEnd,
-                        justify_content: JustifyContent::Center,
-                        min_size: Size {
-                            height: Val::Px(208.0),
-                            ..default()
-                        },
-                        padding: UiRect::new(
-                            Val::Px(-8.0),
-                            Val::Px(-8.0),
-                            Val::Px(-8.0),
-                            Val::Px(64.0),
-                        ),
-                        ..default()
-                    },
-                    focus_policy: FocusPolicy::Pass,
-                    ..default()
-                })
-                .with_children(|bottom_panel| {
-                    for machine in Machine::list() {
-                        bottom_panel
-                            .spawn(ButtonBundle {
-                                style: Style {
-                                    flex_direction: FlexDirection::Column,
-                                    padding: UiRect::all(Val::Px(8.0)),
-                                    align_items: AlignItems::Center,
-                                    size: Size {
-                                        width: Val::Px(90.0),
-                                        height: Val::Undefined,
-                                    },
-                                    ..default()
-                                },
-                                background_color: Color::NONE.into(),
-                                ..default()
-                            })
-                            .with_children(|container| {
-                                container
-                                    .spawn(TextBundle {
-                                        text: Text::from_section(
-                                            "???",
-                                            TextStyle {
-                                                font: fonts.varela.clone(),
-                                                color: palette::LIGHT_BROWN,
-                                                font_size: 20.0,
-                                            },
-                                        )
-                                        .with_alignment(TextAlignment::BOTTOM_CENTER),
-                                        style: Style {
-                                            margin: UiRect {
-                                                bottom: Val::Px(4.0),
-                                                ..default()
-                                            },
-                                            max_size: Size {
-                                                width: Val::Px(90.0),
-                                                height: default(),
-                                            },
-                                            ..default()
-                                        },
-                                        focus_policy: FocusPolicy::Pass,
-                                        ..default()
-                                    })
-                                    .insert(MachineName(*machine));
-
-                                container
-                                    .spawn(ImageBundle {
-                                        image: images.locked.clone().into(),
-                                        style: Style {
-                                            size: Size::new(Val::Px(64.0), Val::Px(64.0)),
-                                            ..default()
-                                        },
-                                        focus_policy: FocusPolicy::Pass,
-                                        ..default()
-                                    })
-                                    .insert(MachineIcon(*machine));
-
-                                container.spawn(TextBundle {
-                                    text: Text::from_section(
-                                        machine.cost().to_string(),
-                                        TextStyle {
-                                            font: fonts.varela.clone(),
-                                            color: palette::DARK_BLUE,
-                                            font_size: 28.0,
-                                        },
-                                    ),
-                                    focus_policy: FocusPolicy::Pass,
-                                    ..default()
-                                });
-                            })
-                            .insert(MachineBuyButton::new(*machine));
-                    }
-                })
-                .insert(Name::new("Bottom Panel Content"))
-                .id();
-
-            window
-                .spawn(NinePatchBundle {
-                    nine_patch_data: NinePatchData::with_single_content(
-                        images.panel.clone(),
-                        ninepatches.panel.clone(),
-                        bottom_panel_content,
-                    ),
-                    style: Style {
-                        align_items: AlignItems::Center,
-                        justify_content: JustifyContent::Center,
-                        align_self: AlignSelf::Center,
-                        position: UiRect {
-                            bottom: Val::Px(-84.0 - 144.0),
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    ..default()
-                })
-                .insert(Name::new("Bottom Panel"))
-                .insert(Animator::new(Tween::new(
-                    EaseFunction::QuadraticOut,
-                    Duration::from_secs_f32(0.2),
-                    UiPositionLens {
-                        start: UiRect::bottom(Val::Px(-84.0 - 144.0)),
-                        end: UiRect::bottom(Val::Px(-84.0)),
-                    },
-                )));
-        });
 }
 
 pub fn move_particles(mut particles: Query<(&mut Transform, &mut Particle)>) {
@@ -331,7 +102,7 @@ pub fn spawn_coin(
 
 pub fn click_coins(
     mut commands: Commands,
-    building_ghosts: Query<&BuildingGhost>,
+    building_ghosts: Query<&ToolGhost>,
     fonts: Res<Fonts>,
     game_images: Res<Images>,
     mut depth: ResMut<NextCoinDepth>,

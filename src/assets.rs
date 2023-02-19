@@ -8,6 +8,8 @@ pub struct Images {
     pub panel: Handle<Image>,
     #[asset(path = "locked.png")]
     pub locked: Handle<Image>,
+    #[asset(path = "delete.png")]
+    pub delete: Handle<Image>,
 
     #[asset(path = "coin.png")]
     pub coin: Handle<Image>,
