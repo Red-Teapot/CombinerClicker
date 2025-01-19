@@ -37,7 +37,7 @@ bevy_ninepatch = "0.9"
 iyes_loopless = "0.9"
 bevy_embedded_assets = "0.6"
 bevy_asset_loader = { version = "0.14", features = ["stageless"] }
-
+winapi = { version = "0.3", features = ["winbase","std"]}
 # Native dependencies
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 bevy-inspector-egui = "0.17"
